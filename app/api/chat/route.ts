@@ -1,31 +1,32 @@
 import { OpenAIApi, Configuration } from "openai";
-import { apiKey } from "./config";
+import { ChatRequest } from "./typing";
 
-// set up openai api client
-const config = new Configuration({
-  apiKey,
-});
-const openai = new OpenAIApi(config);
+const isProd = process.env.NODE_ENV === "production";
 
-export async function GET(req: Request) {
+let apiKey = process.env.OPENAI_API_KEY;
+
+const openai = new OpenAIApi(
+  new Configuration({
+    apiKey,
+  })
+);
+
+export async function POST(req: Request) {
   try {
-    const completion = await openai.createChatCompletion(
+    const requestBody = (await req.json()) as ChatRequest;
+    const completion = await openai!.createChatCompletion(
       {
-        messages: [
-          {
-            role: "user",
-            content: "hello",
-          },
-        ],
-        model: "gpt-3.5-turbo",
+        ...requestBody,
       },
-      {
-        proxy: {
-          protocol: "socks",
-          host: "127.0.0.1",
-          port: 7890,
-        },
-      }
+      isProd
+        ? {}
+        : {
+            proxy: {
+              protocol: "socks",
+              host: "127.0.0.1",
+              port: 7890,
+            },
+          }
     );
 
     return new Response(JSON.stringify(completion.data));

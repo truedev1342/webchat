@@ -1,5 +1,8 @@
 "use client";
 
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+
 import { IconButton } from "./button";
 import styles from "./home.module.css";
 
@@ -10,11 +13,23 @@ import SendWhiteIcon from "../icons/send-white.svg";
 import BrainIcon from "../icons/brain.svg";
 import ExportIcon from "../icons/export.svg";
 import BotIcon from "../icons/bot.svg";
-import UserIcon from "../icons/user.svg";
 import AddIcon from "../icons/add.svg";
+import DeleteIcon from "../icons/delete.svg";
+import LoadingIcon from "../icons/three-dots.svg";
+
+import { Message, useChatStore } from "../store";
+
+export function Avatar(props: { role: Message["role"] }) {
+  if (props.role === "assistant") {
+    return <BotIcon className={styles["user-avtar"]} />;
+  }
+
+  return <div className={styles["user-avtar"]}>🤣</div>;
+}
 
 export function ChatItem(props: {
   onClick?: () => void;
+  onDelete?: () => void;
   title: string;
   count: number;
   time: string;
@@ -25,58 +40,109 @@ export function ChatItem(props: {
       className={`${styles["chat-item"]} ${
         props.selected && styles["chat-item-selected"]
       }`}
+      onClick={props.onClick}
     >
       <div className={styles["chat-item-title"]}>{props.title}</div>
       <div className={styles["chat-item-info"]}>
         <div className={styles["chat-item-count"]}>{props.count} 条对话</div>
         <div className={styles["chat-item-date"]}>{props.time}</div>
       </div>
+      <div className={styles["chat-item-delete"]} onClick={props.onDelete}>
+        <DeleteIcon />
+      </div>
     </div>
   );
 }
 
 export function ChatList() {
-  const listData = new Array(5).fill({
-    title: "这是一个标题",
-    count: 10,
-    time: new Date().toLocaleString(),
-  });
-
-  const selectedIndex = 0;
+  const [sessions, selectedIndex, selectSession, removeSession] = useChatStore(
+    (state) => [
+      state.sessions,
+      state.currentSessionIndex,
+      state.selectSession,
+      state.removeSession,
+    ]
+  );
 
   return (
     <div className={styles["chat-list"]}>
-      {listData.map((item, i) => (
-        <ChatItem {...item} key={i} selected={i === selectedIndex} />
+      {sessions.map((item, i) => (
+        <ChatItem
+          title={item.topic}
+          time={item.lastUpdate}
+          count={item.messages.length}
+          key={i}
+          selected={i === selectedIndex}
+          onClick={() => selectSession(i)}
+          onDelete={() => removeSession(i)}
+        />
       ))}
     </div>
   );
 }
 
 export function Chat() {
-  const messages = [
-    {
-      role: "user",
-      content: "这是一条消息",
-      date: new Date().toLocaleString(),
-    },
-    {
-      role: "bot",
-      content: "这是一条回复".repeat(10),
-      date: new Date().toLocaleString(),
-    },
-  ];
+  type RenderMessage = Message & { preview?: boolean };
 
-  const title = "这是一个标题";
-  const count = 10;
+  const session = useChatStore((state) => state.currentSession());
+  const [userInput, setUserInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onUserInput = useChatStore((state) => state.onUserInput);
+  const onUserSubmit = () => {
+    if (userInput.length <= 0) return;
+    setIsLoading(true);
+    onUserInput(userInput).then(() => setIsLoading(false));
+    setUserInput("");
+  };
+  const onInputKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter" && (e.shiftKey || e.ctrlKey || e.metaKey)) {
+      onUserSubmit();
+      e.preventDefault();
+    }
+  };
+  const latestMessageRef = useRef<HTMLDivElement>(null);
+
+  const messages = (session.messages as RenderMessage[])
+    .concat(
+      isLoading
+        ? [
+            {
+              role: "assistant",
+              content: "……",
+              date: new Date().toLocaleString(),
+              preview: true,
+            },
+          ]
+        : []
+    )
+    .concat(
+      userInput.length > 0
+        ? [
+            {
+              role: "user",
+              content: userInput,
+              date: new Date().toLocaleString(),
+              preview: true,
+            },
+          ]
+        : []
+    );
+
+  useEffect(() => {
+    latestMessageRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  });
 
   return (
-    <div className={styles.chat}>
+    <div className={styles.chat} key={session.topic}>
       <div className={styles["chat-header"]}>
         <div>
-          <div className={styles["chat-header-title"]}>{title}</div>
+          <div className={styles["chat-header-title"]}>{session.topic}</div>
           <div className={styles["chat-header-sub-title"]}>
-            与 ChatGPT 的 {count} 条对话
+            与 ChatGPT 的 {session.messages.length} 条对话
           </div>
         </div>
         <div className={styles["chat-actions"]}>
@@ -101,16 +167,25 @@ export function Chat() {
               }
             >
               <div className={styles["chat-message-container"]}>
-                <div className={styles["chat-message-avtar"]}>
-                  {message.role === "user" ? <UserIcon /> : <BotIcon />}
+                <div className={styles["chat-message-avatar"]}>
+                  <Avatar role={message.role} />
                 </div>
+                {message.preview && (
+                  <div className={styles["chat-message-status"]}>正在输入…</div>
+                )}
                 <div className={styles["chat-message-item"]}>
-                  {message.content}
+                  {message.preview && !isUser ? (
+                    <LoadingIcon />
+                  ) : (
+                    <div className="markdown-body">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                  )}
                 </div>
-                {!isUser && (
+                {!isUser && !message.preview && (
                   <div className={styles["chat-message-actions"]}>
                     <div className={styles["chat-message-action-date"]}>
-                      {message.date}
+                      {message.date.toLocaleString()}
                     </div>
                   </div>
                 )}
@@ -118,19 +193,26 @@ export function Chat() {
             </div>
           );
         })}
+        <span ref={latestMessageRef} style={{ opacity: 0 }}>
+          -
+        </span>
       </div>
 
       <div className={styles["chat-input-panel"]}>
         <div className={styles["chat-input-panel-inner"]}>
           <textarea
             className={styles["chat-input"]}
-            placeholder="输入消息"
+            placeholder="输入消息，Ctrl + Enter 发送"
             rows={3}
+            onInput={(e) => setUserInput(e.currentTarget.value)}
+            value={userInput}
+            onKeyDown={(e) => onInputKeyDown(e as any)}
           />
           <IconButton
             icon={<SendWhiteIcon />}
             text={"发送"}
             className={styles["chat-input-send"]}
+            onClick={onUserSubmit}
           />
         </div>
       </div>
@@ -139,6 +221,8 @@ export function Chat() {
 }
 
 export function Home() {
+  const [createNewSession] = useChatStore((state) => [state.newSession]);
+
   return (
     <div className={styles.container}>
       <div className={styles.sidebar}>
@@ -162,11 +246,17 @@ export function Home() {
               <IconButton icon={<SettingsIcon />} />
             </div>
             <div className={styles["sidebar-action"]}>
-              <IconButton icon={<GithubIcon />} />
+              <a href="https://github.com/Yidadaa" target="_blank">
+                <IconButton icon={<GithubIcon />} />
+              </a>
             </div>
           </div>
           <div>
-            <IconButton icon={<AddIcon />} text={"新的聊天"} />
+            <IconButton
+              icon={<AddIcon />}
+              text={"新的聊天"}
+              onClick={createNewSession}
+            />
           </div>
         </div>
       </div>
