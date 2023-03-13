@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "local:dev": "./dev/proxychains.exe -f ./scripts/proxychains.conf yarn dev",
+    "local:start": "./dev/proxychains.exe -f ./scripts/proxychains.conf yarn start",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -14,6 +16,7 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/react-katex": "^3.0.0",
+    "@vercel/analytics": "^0.1.11",
     "emoji-picker-react": "^4.4.7",
     "eslint": "8.35.0",
     "eslint-config-next": "13.2.3",
