@@ -1,4 +1,5 @@
 const cn = {
+  WIP: "该功能仍在开发中……",
   ChatItem: {
     ChatItemCount: (count: number) => `${count} 条对话`,
   },
@@ -8,6 +9,8 @@ const cn = {
       ChatList: "查看消息列表",
       CompressedHistory: "查看压缩后的历史 Prompt",
       Export: "导出聊天记录",
+      Copy: "复制",
+      Stop: "停止",
     },
     Typing: "正在输入…",
     Input: (submitKey: string) => `输入消息，${submitKey} 发送`,
@@ -43,6 +46,14 @@ const cn = {
       },
     },
     Avatar: "头像",
+    Update: {
+      Version: (x: string) => `当前版本：${x}`,
+      IsLatest: "已是最新版本",
+      CheckUpdate: "检查更新",
+      IsChecking: "正在检查更新...",
+      FoundUpdate: (x: string) => `发现新版本：${x}`,
+      GoToUpdate: "前往更新",
+    },
     SendKey: "发送键",
     Theme: "主题",
     TightBorder: "紧凑边框",

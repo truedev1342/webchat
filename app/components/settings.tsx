@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 
@@ -11,10 +11,19 @@ import ClearIcon from "../icons/clear.svg";
 import { List, ListItem, Popover } from "./ui-lib";
 
 import { IconButton } from "./button";
-import { SubmitKey, useChatStore, Theme, ALL_MODELS } from "../store";
+import {
+  SubmitKey,
+  useChatStore,
+  Theme,
+  ALL_MODELS,
+  useUpdateStore,
+} from "../store";
 import { Avatar } from "./home";
 
 import Locale, { changeLang, getLang } from "../locales";
+import { getCurrentCommitId } from "../utils";
+import Link from "next/link";
+import { UPDATE_URL } from "../constant";
 
 function SettingItem(props: {
   title: string;
@@ -44,6 +53,23 @@ export function Settings(props: { closeSettings: () => void }) {
       state.clearAllData,
     ]
   );
+
+  const updateStore = useUpdateStore();
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const currentId = getCurrentCommitId();
+  const remoteId = updateStore.remoteId;
+  const hasNewVersion = currentId !== remoteId;
+
+  function checkUpdate(force = false) {
+    setCheckingUpdate(true);
+    updateStore.getLatestCommitId(force).then(() => {
+      setCheckingUpdate(false);
+    });
+  }
+
+  useEffect(() => {
+    checkUpdate();
+  }, []);
 
   return (
     <>
@@ -107,6 +133,31 @@ export function Settings(props: { closeSettings: () => void }) {
                 <Avatar role="user" />
               </div>
             </Popover>
+          </SettingItem>
+
+          <SettingItem
+            title={Locale.Settings.Update.Version(currentId)}
+            subTitle={
+              checkingUpdate
+                ? Locale.Settings.Update.IsChecking
+                : hasNewVersion
+                ? Locale.Settings.Update.FoundUpdate(remoteId ?? "ERROR")
+                : Locale.Settings.Update.IsLatest
+            }
+          >
+            {checkingUpdate ? (
+              <div />
+            ) : hasNewVersion ? (
+              <Link href={UPDATE_URL} target="_blank" className="link">
+                {Locale.Settings.Update.GoToUpdate}
+              </Link>
+            ) : (
+              <IconButton
+                icon={<ResetIcon></ResetIcon>}
+                text={Locale.Settings.Update.CheckUpdate}
+                onClick={() => checkUpdate(true)}
+              />
+            )}
           </SettingItem>
 
           <SettingItem title={Locale.Settings.SendKey}>

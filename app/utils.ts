@@ -56,3 +56,21 @@ export function selectOrCopy(el: HTMLElement, content: string) {
 
   return true;
 }
+
+let currentId: string;
+export function getCurrentCommitId() {
+  if (currentId) {
+    return currentId;
+  }
+
+  if (document) {
+    const meta = document.head.querySelector(
+      "meta[name='version']"
+    ) as HTMLMetaElement;
+    currentId = meta?.content ?? "";
+  } else {
+    currentId = process.env.COMMIT_ID ?? "";
+  }
+
+  return currentId;
+}

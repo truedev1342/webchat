@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 
 import { IconButton } from "./button";
 import styles from "./home.module.scss";
@@ -21,11 +21,12 @@ import CopyIcon from "../icons/copy.svg";
 import DownloadIcon from "../icons/download.svg";
 
 import { Message, SubmitKey, useChatStore, ChatSession } from "../store";
-import { showModal } from "./ui-lib";
+import { showModal, showToast } from "./ui-lib";
 import { copyToClipboard, downloadAs, isIOS, selectOrCopy } from "../utils";
 import Locale from "../locales";
 
 import dynamic from "next/dynamic";
+import { REPO_URL } from "../constant";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -165,6 +166,8 @@ export function Chat(props: { showSideBar?: () => void }) {
   };
   const latestMessageRef = useRef<HTMLDivElement>(null);
 
+  const [hoveringMessage, setHoveringMessage] = useState(false);
+
   const messages = (session.messages as RenderMessage[])
     .concat(
       isLoading
@@ -191,14 +194,16 @@ export function Chat(props: { showSideBar?: () => void }) {
         : []
     );
 
-  useEffect(() => {
-    const dom = latestMessageRef.current;
-    if (dom && !isIOS()) {
-      dom.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    }
+  useLayoutEffect(() => {
+    setTimeout(() => {
+      const dom = latestMessageRef.current;
+      if (dom && !isIOS() && !hoveringMessage) {
+        dom.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }
+    }, 500);
   });
 
   return (
@@ -247,7 +252,15 @@ export function Chat(props: { showSideBar?: () => void }) {
         </div>
       </div>
 
-      <div className={styles["chat-body"]}>
+      <div
+        className={styles["chat-body"]}
+        onMouseOver={() => {
+          setHoveringMessage(true);
+        }}
+        onMouseOut={() => {
+          setHoveringMessage(false);
+        }}
+      >
         {messages.map((message, i) => {
           const isUser = message.role === "user";
 
@@ -268,6 +281,25 @@ export function Chat(props: { showSideBar?: () => void }) {
                   </div>
                 )}
                 <div className={styles["chat-message-item"]}>
+                  {!isUser && (
+                    <div className={styles["chat-message-top-actions"]}>
+                      {message.streaming && (
+                        <div
+                          className={styles["chat-message-top-action"]}
+                          onClick={() => showToast(Locale.WIP)}
+                        >
+                          {Locale.Chat.Actions.Stop}
+                        </div>
+                      )}
+
+                      <div
+                        className={styles["chat-message-top-action"]}
+                        onClick={() => copyToClipboard(message.content)}
+                      >
+                        {Locale.Chat.Actions.Copy}
+                      </div>
+                    </div>
+                  )}
                   {(message.preview || message.content.length === 0) &&
                   !isUser ? (
                     <LoadingIcon />
@@ -295,9 +327,9 @@ export function Chat(props: { showSideBar?: () => void }) {
             </div>
           );
         })}
-        <span ref={latestMessageRef} style={{ opacity: 0 }}>
+        <div ref={latestMessageRef} style={{ opacity: 0, height: "2em" }}>
           -
-        </span>
+        </div>
       </div>
 
       <div className={styles["chat-input-panel"]}>
@@ -466,10 +498,7 @@ export function Home() {
               />
             </div>
             <div className={styles["sidebar-action"]}>
-              <a
-                href="https://github.com/Yidadaa/ChatGPT-Next-Web"
-                target="_blank"
-              >
+              <a href={REPO_URL} target="_blank">
                 <IconButton icon={<GithubIcon />} />
               </a>
             </div>
