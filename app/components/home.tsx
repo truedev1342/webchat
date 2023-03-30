@@ -290,9 +290,7 @@ export function Chat(props: {
 
   // for auto-scroll
   const latestMessageRef = useRef<HTMLDivElement>(null);
-
-  // wont scroll while hovering messages
-  const [autoScroll, setAutoScroll] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
 
   // preview messages
   const messages = (session.messages as RenderMessage[])
@@ -491,7 +489,7 @@ export function Chat(props: {
             onFocus={() => setAutoScroll(true)}
             onBlur={() => {
               setAutoScroll(false);
-              setTimeout(() => setPromptHints([]), 100);
+              setTimeout(() => setPromptHints([]), 500);
             }}
             autoFocus={!props?.sideBarShowing}
           />
