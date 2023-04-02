@@ -459,6 +459,11 @@ export function Chat(props: {
 
   const [showPromptModal, setShowPromptModal] = useState(false);
 
+  // Auto focus
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div className={styles.chat} key={session.id}>
       <div className={styles["window-header"]}>
@@ -525,6 +530,8 @@ export function Chat(props: {
         className={styles["chat-body"]}
         ref={scrollRef}
         onScroll={(e) => onChatBodyScroll(e.currentTarget)}
+        onMouseOver={() => inputRef.current?.blur()}
+        onTouchStart={() => inputRef.current?.blur()}
       >
         {messages.map((message, i) => {
           const isUser = message.role === "user";
@@ -545,11 +552,7 @@ export function Chat(props: {
                     {Locale.Chat.Typing}
                   </div>
                 )}
-                <div
-                  className={styles["chat-message-item"]}
-                  onMouseOver={() => inputRef.current?.blur()}
-                  onTouchStart={() => inputRef.current?.blur()}
-                >
+                <div className={styles["chat-message-item"]}>
                   {!isUser &&
                     !(message.preview || message.content.length === 0) && (
                       <div className={styles["chat-message-top-actions"]}>
