@@ -9,6 +9,8 @@ import CopyIcon from "../icons/copy.svg";
 import DownloadIcon from "../icons/download.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import BotIcon from "../icons/bot.svg";
+import AddIcon from "../icons/add.svg";
+import DeleteIcon from "../icons/delete.svg";
 
 import {
   Message,
@@ -16,6 +18,7 @@ import {
   useChatStore,
   ChatSession,
   BOT_HELLO,
+  ROLES,
 } from "../store";
 
 import {
@@ -33,8 +36,9 @@ import Locale from "../locales";
 
 import { IconButton } from "./button";
 import styles from "./home.module.scss";
+import chatStyle from "./chat.module.scss";
 
-import { showModal, showToast } from "./ui-lib";
+import { Modal, showModal, showToast } from "./ui-lib";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -94,26 +98,130 @@ function exportMessages(messages: Message[], topic: string) {
   });
 }
 
-function showMemoryPrompt(session: ChatSession) {
-  showModal({
-    title: `${Locale.Memory.Title} (${session.lastSummarizeIndex} of ${session.messages.length})`,
-    children: (
-      <div className="markdown-body">
-        <pre className={styles["export-content"]}>
-          {session.memoryPrompt || Locale.Memory.EmptyContent}
-        </pre>
+function PromptToast(props: {
+  showModal: boolean;
+  setShowModal: (_: boolean) => void;
+}) {
+  const chatStore = useChatStore();
+  const session = chatStore.currentSession();
+  const context = session.context;
+
+  const addContextPrompt = (prompt: Message) => {
+    chatStore.updateCurrentSession((session) => {
+      session.context.push(prompt);
+    });
+  };
+
+  const removeContextPrompt = (i: number) => {
+    chatStore.updateCurrentSession((session) => {
+      session.context.splice(i, 1);
+    });
+  };
+
+  const updateContextPrompt = (i: number, prompt: Message) => {
+    chatStore.updateCurrentSession((session) => {
+      session.context[i] = prompt;
+    });
+  };
+
+  return (
+    <div className={chatStyle["prompt-toast"]} key="prompt-toast">
+      <div
+        className={chatStyle["prompt-toast-inner"] + " clickable"}
+        role="button"
+        onClick={() => props.setShowModal(true)}
+      >
+        <BrainIcon />
+        <span className={chatStyle["prompt-toast-content"]}>
+          {Locale.Context.Toast(context.length)}
+        </span>
       </div>
-    ),
-    actions: [
-      <IconButton
-        key="copy"
-        icon={<CopyIcon />}
-        bordered
-        text={Locale.Memory.Copy}
-        onClick={() => copyToClipboard(session.memoryPrompt)}
-      />,
-    ],
-  });
+      {props.showModal && (
+        <div className="modal-mask">
+          <Modal
+            title={Locale.Context.Edit}
+            onClose={() => props.setShowModal(false)}
+            actions={[
+              <IconButton
+                key="copy"
+                icon={<CopyIcon />}
+                bordered
+                text={Locale.Memory.Copy}
+                onClick={() => copyToClipboard(session.memoryPrompt)}
+              />,
+            ]}
+          >
+            <>
+              {" "}
+              <div className={chatStyle["context-prompt"]}>
+                {context.map((c, i) => (
+                  <div className={chatStyle["context-prompt-row"]} key={i}>
+                    <select
+                      value={c.role}
+                      className={chatStyle["context-role"]}
+                      onChange={(e) =>
+                        updateContextPrompt(i, {
+                          ...c,
+                          role: e.target.value as any,
+                        })
+                      }
+                    >
+                      {ROLES.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      value={c.content}
+                      type="text"
+                      className={chatStyle["context-content"]}
+                      onChange={(e) =>
+                        updateContextPrompt(i, {
+                          ...c,
+                          content: e.target.value as any,
+                        })
+                      }
+                    ></input>
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      className={chatStyle["context-delete-button"]}
+                      onClick={() => removeContextPrompt(i)}
+                    />
+                  </div>
+                ))}
+
+                <div className={chatStyle["context-prompt-row"]}>
+                  <IconButton
+                    icon={<AddIcon />}
+                    text={Locale.Context.Add}
+                    bordered
+                    className={chatStyle["context-prompt-button"]}
+                    onClick={() =>
+                      addContextPrompt({
+                        role: "system",
+                        content: "",
+                        date: "",
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className={chatStyle["memory-prompt"]}>
+                <div className={chatStyle["memory-prompt-title"]}>
+                  {Locale.Memory.Title} ({session.lastSummarizeIndex} of{" "}
+                  {session.messages.length})
+                </div>
+                <div className={chatStyle["memory-prompt-content"]}>
+                  {session.memoryPrompt || Locale.Memory.EmptyContent}
+                </div>
+              </div>
+            </>
+          </Modal>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function useSubmitHandler() {
@@ -164,6 +272,26 @@ export function PromptHints(props: {
   );
 }
 
+function useScrollToBottom() {
+  // for auto-scroll
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  // auto scroll
+  useLayoutEffect(() => {
+    const dom = scrollRef.current;
+    if (dom && autoScroll) {
+      setTimeout(() => (dom.scrollTop = dom.scrollHeight), 500);
+    }
+  });
+
+  return {
+    scrollRef,
+    autoScroll,
+    setAutoScroll,
+  };
+}
+
 export function Chat(props: {
   showSideBar?: () => void;
   sideBarShowing?: boolean;
@@ -181,6 +309,7 @@ export function Chat(props: {
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { submitKey, shouldSubmit } = useSubmitHandler();
+  const { scrollRef, setAutoScroll } = useScrollToBottom();
 
   // prompt hints
   const promptStore = usePromptStore();
@@ -221,8 +350,12 @@ export function Chat(props: {
       setPromptHints([]);
     } else if (!chatStore.config.disablePromptHint && n < SEARCH_TEXT_LIMIT) {
       // check if need to trigger auto completion
-      if (text.startsWith("/") && text.length > 1) {
-        onSearch(text.slice(1));
+      if (text.startsWith("/")) {
+        let searchText = text.slice(1);
+        if (searchText.length === 0) {
+          searchText = " ";
+        }
+        onSearch(searchText);
       }
     }
   };
@@ -239,7 +372,6 @@ export function Chat(props: {
 
   // stop response
   const onUserStop = (messageIndex: number) => {
-    console.log(ControllerPool, sessionIndex, messageIndex);
     ControllerPool.stop(sessionIndex, messageIndex);
   };
 
@@ -276,14 +408,20 @@ export function Chat(props: {
     }
   };
 
-  // for auto-scroll
-  const latestMessageRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
-
   const config = useChatStore((state) => state.config);
 
+  const context: RenderMessage[] = session.context.slice();
+
+  if (
+    context.length === 0 &&
+    session.messages.at(0)?.content !== BOT_HELLO.content
+  ) {
+    context.push(BOT_HELLO);
+  }
+
   // preview messages
-  const messages = (session.messages as RenderMessage[])
+  const messages = context
+    .concat(session.messages as RenderMessage[])
     .concat(
       isLoading
         ? [
@@ -309,27 +447,7 @@ export function Chat(props: {
         : [],
     );
 
-  // auto scroll
-  useLayoutEffect(() => {
-    setTimeout(() => {
-      const dom = latestMessageRef.current;
-      const inputDom = inputRef.current;
-
-      // only scroll when input overlaped message body
-      let shouldScroll = true;
-      if (dom && inputDom) {
-        const domRect = dom.getBoundingClientRect();
-        const inputRect = inputDom.getBoundingClientRect();
-        shouldScroll = domRect.top > inputRect.top;
-      }
-
-      if (dom && autoScroll && shouldScroll) {
-        dom.scrollIntoView({
-          block: "end",
-        });
-      }
-    }, 500);
-  });
+  const [showPromptModal, setShowPromptModal] = useState(false);
 
   return (
     <div className={styles.chat} key={session.id}>
@@ -370,7 +488,7 @@ export function Chat(props: {
               bordered
               title={Locale.Chat.Actions.CompressedHistory}
               onClick={() => {
-                showMemoryPrompt(session);
+                setShowPromptModal(true);
               }}
             />
           </div>
@@ -385,9 +503,14 @@ export function Chat(props: {
             />
           </div>
         </div>
+
+        <PromptToast
+          showModal={showPromptModal}
+          setShowModal={setShowPromptModal}
+        />
       </div>
 
-      <div className={styles["chat-body"]}>
+      <div className={styles["chat-body"]} ref={scrollRef}>
         {messages.map((message, i) => {
           const isUser = message.role === "user";
 
@@ -407,7 +530,10 @@ export function Chat(props: {
                     {Locale.Chat.Typing}
                   </div>
                 )}
-                <div className={styles["chat-message-item"]}>
+                <div
+                  className={styles["chat-message-item"]}
+                  onMouseOver={() => inputRef.current?.blur()}
+                >
                   {!isUser &&
                     !(message.preview || message.content.length === 0) && (
                       <div className={styles["chat-message-top-actions"]}>
@@ -463,9 +589,6 @@ export function Chat(props: {
             </div>
           );
         })}
-        <div ref={latestMessageRef} style={{ opacity: 0, height: "1px" }}>
-          -
-        </div>
       </div>
 
       <div className={styles["chat-input-panel"]}>
@@ -475,7 +598,7 @@ export function Chat(props: {
             ref={inputRef}
             className={styles["chat-input"]}
             placeholder={Locale.Chat.Input(submitKey)}
-            rows={4}
+            rows={2}
             onInput={(e) => onInput(e.currentTarget.value)}
             value={userInput}
             onKeyDown={onInputKeyDown}
