@@ -392,9 +392,7 @@ export function Chat(props: {
     const dom = inputRef.current;
     if (!dom) return;
     const { minRows, maxRows } = props.autoSize;
-    setTimeout(() => {
-      setTextareaStyle(calcTextareaHeight(dom, minRows, maxRows));
-    }, 50);
+    setTextareaStyle(calcTextareaHeight(dom, minRows, maxRows));
   };
 
   // only search prompts when user input is short
@@ -524,7 +522,8 @@ export function Chat(props: {
   // Textarea Adaptive height
   useEffect(() => {
     resizeTextarea();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInput]);
 
   return (
     <div className={styles.chat} key={session.id}>
