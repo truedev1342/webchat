@@ -38,9 +38,9 @@ import {
   copyToClipboard,
   downloadAs,
   getEmojiUrl,
-  isMobileScreen,
   selectOrCopy,
   autoGrowTextArea,
+  useMobileScreen,
 } from "../utils";
 
 import dynamic from "next/dynamic";
@@ -438,6 +438,7 @@ export function Chat(props: {
   const { submitKey, shouldSubmit } = useSubmitHandler();
   const { scrollRef, setAutoScroll, scrollToBottom } = useScrollToBottom();
   const [hitBottom, setHitBottom] = useState(false);
+  const isMobileScreen = useMobileScreen();
 
   const onChatBodyScroll = (e: HTMLElement) => {
     const isTouchBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - 20;
@@ -468,7 +469,7 @@ export function Chat(props: {
       const rows = inputRef.current ? autoGrowTextArea(inputRef.current) : 1;
       const inputRows = Math.min(
         5,
-        Math.max(2 + Number(!isMobileScreen()), rows),
+        Math.max(2 + Number(!isMobileScreen), rows),
       );
       setInputRows(inputRows);
     },
@@ -508,7 +509,7 @@ export function Chat(props: {
     setBeforeInput(userInput);
     setUserInput("");
     setPromptHints([]);
-    if (!isMobileScreen()) inputRef.current?.focus();
+    if (!isMobileScreen) inputRef.current?.focus();
     setAutoScroll(true);
   };
 
@@ -640,7 +641,7 @@ export function Chat(props: {
 
   // Auto focus
   useEffect(() => {
-    if (props.sideBarShowing && isMobileScreen()) return;
+    if (props.sideBarShowing && isMobileScreen) return;
     inputRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -688,7 +689,7 @@ export function Chat(props: {
               }}
             />
           </div>
-          {!isMobileScreen() && (
+          {!isMobileScreen && (
             <div className={styles["window-action-button"]}>
               <IconButton
                 icon={chatStore.config.tightBorder ? <MinIcon /> : <MaxIcon />}
@@ -723,6 +724,11 @@ export function Chat(props: {
       >
         {messages.map((message, i) => {
           const isUser = message.role === "user";
+          const showActions =
+            !isUser &&
+            i > 0 &&
+            !(message.preview || message.content.length === 0);
+          const showTyping = message.preview || message.streaming;
 
           return (
             <div
@@ -735,47 +741,46 @@ export function Chat(props: {
                 <div className={styles["chat-message-avatar"]}>
                   <Avatar role={message.role} model={message.model} />
                 </div>
-                {(message.preview || message.streaming) && (
+                {showTyping && (
                   <div className={styles["chat-message-status"]}>
                     {Locale.Chat.Typing}
                   </div>
                 )}
                 <div className={styles["chat-message-item"]}>
-                  {!isUser &&
-                    !(message.preview || message.content.length === 0) && (
-                      <div className={styles["chat-message-top-actions"]}>
-                        {message.streaming ? (
-                          <div
-                            className={styles["chat-message-top-action"]}
-                            onClick={() => onUserStop(message.id ?? i)}
-                          >
-                            {Locale.Chat.Actions.Stop}
-                          </div>
-                        ) : (
-                          <>
-                            <div
-                              className={styles["chat-message-top-action"]}
-                              onClick={() => onDelete(message.id ?? i)}
-                            >
-                              {Locale.Chat.Actions.Delete}
-                            </div>
-                            <div
-                              className={styles["chat-message-top-action"]}
-                              onClick={() => onResend(message.id ?? i)}
-                            >
-                              {Locale.Chat.Actions.Retry}
-                            </div>
-                          </>
-                        )}
-
+                  {showActions && (
+                    <div className={styles["chat-message-top-actions"]}>
+                      {message.streaming ? (
                         <div
                           className={styles["chat-message-top-action"]}
-                          onClick={() => copyToClipboard(message.content)}
+                          onClick={() => onUserStop(message.id ?? i)}
                         >
-                          {Locale.Chat.Actions.Copy}
+                          {Locale.Chat.Actions.Stop}
                         </div>
+                      ) : (
+                        <>
+                          <div
+                            className={styles["chat-message-top-action"]}
+                            onClick={() => onDelete(message.id ?? i)}
+                          >
+                            {Locale.Chat.Actions.Delete}
+                          </div>
+                          <div
+                            className={styles["chat-message-top-action"]}
+                            onClick={() => onResend(message.id ?? i)}
+                          >
+                            {Locale.Chat.Actions.Retry}
+                          </div>
+                        </>
+                      )}
+
+                      <div
+                        className={styles["chat-message-top-action"]}
+                        onClick={() => copyToClipboard(message.content)}
+                      >
+                        {Locale.Chat.Actions.Copy}
                       </div>
-                    )}
+                    </div>
+                  )}
                   <Markdown
                     content={message.content}
                     loading={
@@ -784,7 +789,7 @@ export function Chat(props: {
                     }
                     onContextMenu={(e) => onRightClick(e, message)}
                     onDoubleClickCapture={() => {
-                      if (!isMobileScreen()) return;
+                      if (!isMobileScreen) return;
                       setUserInput(message.content);
                     }}
                     fontSize={fontSize}
