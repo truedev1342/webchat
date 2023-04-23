@@ -15,7 +15,7 @@ export enum Theme {
   Light = "light",
 }
 
-const DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG = {
   sendBotMessages: true as boolean,
   submitKey: SubmitKey.CtrlEnter as SubmitKey,
   avatar: "1f603",
@@ -32,6 +32,7 @@ const DEFAULT_CONFIG = {
     temperature: 1,
     max_tokens: 2000,
     presence_penalty: 0,
+    sendMemory: true,
     historyMessageCount: 4,
     compressMessageLengthThreshold: 1000,
   },
@@ -107,7 +108,7 @@ export const ModalConfigValidator = {
     return limitNumber(x, -2, 2, 0);
   },
   temperature(x: number) {
-    return limitNumber(x, 0, 2, 1);
+    return limitNumber(x, 0, 1, 1);
   },
 };
 
