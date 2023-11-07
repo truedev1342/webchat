@@ -3,6 +3,8 @@ import { ProviderConfigProps } from "../types";
 import { ListItem, PasswordInput } from "../../ui-lib";
 import Locale from "@/app/locales";
 import { REMOTE_API_HOST } from "@/app/constant";
+import { IconButton } from "../../button";
+import ReloadIcon from "@/app/icons/reload.svg";
 
 export function OpenAIProviderConfig(
   props: ProviderConfigProps<ProviderConfig["openai"]>,
@@ -58,6 +60,7 @@ export function OpenAIProviderConfig(
       <ListItem title="自动拉取可用模型" subTitle="尝试拉取所有可用模型">
         <input
           type="checkbox"
+          style={{ marginLeft: 10 }}
           checked={props.config.autoFetchModels}
           onChange={(e) =>
             props.updateConfig(

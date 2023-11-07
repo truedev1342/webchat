@@ -3,12 +3,7 @@ import {
   fetchEventSource,
 } from "@fortaine/fetch-event-source";
 
-import {
-  API_PREFIX,
-  ApiPath,
-  DEFAULT_MODELS,
-  OpenaiPath,
-} from "@/app/constant";
+import { API_PREFIX, ApiPath, OpenaiPath } from "@/app/constant";
 import { ModelConfig, ProviderConfig } from "@/app/store";
 
 import { OpenAI } from "./types";
@@ -21,7 +16,8 @@ import { getApiPath } from "@/app/utils/path";
 import { trimEnd } from "@/app/utils/string";
 import { omit } from "@/app/utils/object";
 import { createLogger } from "@/app/utils/log";
-import { getAuthHeaders } from "../common/auth";
+import { getAuthKey } from "../common/auth";
+import { OpenAIConfig } from "./config";
 
 export function createOpenAiClient(
   providerConfigs: ProviderConfig,
@@ -35,12 +31,12 @@ export function createOpenAiClient(
     headers() {
       return {
         "Content-Type": "application/json",
-        ...getAuthHeaders(openaiConfig.apiKey),
+        Authorization: getAuthKey(),
       };
     },
 
     path(path: OpenaiPath): string {
-      let baseUrl = openaiConfig.endpoint;
+      let baseUrl: string = openaiConfig.endpoint;
 
       // if endpoint is empty, use default endpoint
       if (baseUrl.trim().length === 0) {
@@ -206,59 +202,9 @@ export function createOpenAiClient(
     },
 
     async usage() {
-      const formatDate = (d: Date) =>
-        `${d.getFullYear()}-${(d.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
-      const ONE_DAY = 1 * 24 * 60 * 60 * 1000;
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startDate = formatDate(startOfMonth);
-      const endDate = formatDate(new Date(Date.now() + ONE_DAY));
-
-      const [used, subs] = await Promise.all([
-        fetch(
-          `${this.path(
-            OpenaiPath.Usage,
-          )}?start_date=${startDate}&end_date=${endDate}`,
-          {
-            method: "GET",
-            headers: this.headers(),
-          },
-        ),
-        fetch(this.path(OpenaiPath.Subs), {
-          method: "GET",
-          headers: this.headers(),
-        }),
-      ]);
-
-      if (!used.ok || !subs.ok) {
-        throw new Error("Failed to query usage from openai");
-      }
-
-      const response = (await used.json()) as {
-        total_usage?: number;
-        error?: {
-          type: string;
-          message: string;
-        };
-      };
-
-      const total = (await subs.json()) as {
-        hard_limit_usd?: number;
-      };
-
-      if (response.error?.type) {
-        throw Error(response.error?.message);
-      }
-
-      response.total_usage = Math.round(response.total_usage ?? 0) / 100;
-      total.hard_limit_usd =
-        Math.round((total.hard_limit_usd ?? 0) * 100) / 100;
-
       return {
-        used: response.total_usage,
-        total: total.hard_limit_usd,
+        used: 0,
+        total: 0,
       } as LLMUsage;
     },
 
@@ -266,13 +212,14 @@ export function createOpenAiClient(
       const customModels = openaiConfig.customModels
         .split(",")
         .map((v) => v.trim())
+        .filter((v) => !!v)
         .map((v) => ({
           name: v,
           available: true,
         }));
 
       if (!openaiConfig.autoFetchModels) {
-        return [...DEFAULT_MODELS.slice(), ...customModels];
+        return [...OpenAIConfig.provider.models.slice(), ...customModels];
       }
 
       const res = await fetch(this.path(OpenaiPath.ListModel), {
