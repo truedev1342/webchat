@@ -12,6 +12,7 @@ import { getServerSideConfig } from "@/app/config/server";
 export class GeminiProApi implements LLMApi {
   extractMessage(res: any) {
     console.log("[Response] gemini-pro response: ", res);
+
     return (
       res?.candidates?.at(0)?.content?.parts.at(0)?.text ||
       res?.error?.message ||
@@ -33,6 +34,15 @@ export class GeminiProApi implements LLMApi {
     };
     const requestPayload = {
       contents: messages,
+      generationConfig: {
+        // stopSequences: [
+        //   "Title"
+        // ],
+        temperature: modelConfig.temperature,
+        maxOutputTokens: modelConfig.max_tokens,
+        topP: modelConfig.top_p,
+        // "topK": modelConfig.top_k,
+      },
       // stream: options.config.stream,
       // model: modelConfig.model,
       // temperature: modelConfig.temperature,
@@ -176,6 +186,16 @@ export class GeminiProApi implements LLMApi {
         clearTimeout(requestTimeoutId);
 
         const resJson = await res.json();
+
+        if (resJson?.promptFeedback?.blockReason) {
+          // being blocked
+          options.onError?.(
+            new Error(
+              "Message is being blocked for reason: " +
+                resJson.promptFeedback.blockReason,
+            ),
+          );
+        }
         const message = this.extractMessage(resJson);
         options.onFinish(message);
       }
