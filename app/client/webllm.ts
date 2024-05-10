@@ -1,29 +1,46 @@
-import * as webllm from "@mlc-ai/web-llm";
+import {
+  EngineInterface,
+  CreateWebWorkerEngine,
+  InitProgressReport,
+  prebuiltAppConfig,
+} from "@mlc-ai/web-llm";
 
 import { ChatOptions, LLMApi } from "./api";
 import { ChatCompletionMessageParam } from "@mlc-ai/web-llm";
 
 export class WebLLMApi implements LLMApi {
-  private currentModel = "";
-  private engine: webllm.EngineInterface = new webllm.Engine();
+  private currentModel?: string;
+  private engine?: EngineInterface;
+  private isLoading: boolean = false;
 
   async initModel(
     model: string,
     onUpdate?: (message: string, chunk: string) => void,
   ) {
+    this.isLoading = true;
     this.currentModel = model;
-    this.engine.setInitProgressCallback((report: webllm.InitProgressReport) => {
-      onUpdate?.(report.text, report.text);
-    });
-    await this.engine.reload(this.currentModel);
+    this.engine = await CreateWebWorkerEngine(
+      new Worker(new URL("./webllm-sw.ts", import.meta.url), {
+        type: "module",
+      }),
+      this.currentModel,
+      {
+        initProgressCallback: (report: InitProgressReport) => {
+          onUpdate?.(report.text, report.text);
+        },
+      },
+    );
+    this.isLoading = false;
   }
 
   async chat(options: ChatOptions): Promise<void> {
-    if (options.config.model != this.currentModel) {
+    console.log(this.currentModel, options.config.model);
+
+    if (options.config.model !== this.currentModel) {
       await this.initModel(options.config.model, options.onUpdate);
     }
 
-    const reply = await this.engine.chat.completions.create({
+    const reply = await this.engine!.chat.completions.create({
       stream: false,
       messages: options.messages as ChatCompletionMessageParam[],
     });
@@ -41,7 +58,7 @@ export class WebLLMApi implements LLMApi {
     };
   }
   async models() {
-    return webllm.prebuiltAppConfig.model_list.map((record) => ({
+    return prebuiltAppConfig.model_list.map((record) => ({
       name: record.model_id,
       available: true,
       provider: {
@@ -52,3 +69,5 @@ export class WebLLMApi implements LLMApi {
     }));
   }
 }
+
+export const webllm: LLMApi = new WebLLMApi();
