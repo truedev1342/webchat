@@ -1,25 +1,10 @@
-import { getClientConfig } from "../config/client";
 import { SubmitKey } from "../store/config";
 import { LocaleType } from "./index";
 
 // if you are adding a new translation, please use PartialLocaleType instead of LocaleType
 
-const isApp = !!getClientConfig()?.isApp;
 const en: LocaleType = {
   WIP: "Coming Soon...",
-  Error: {
-    Unauthorized: isApp
-      ? "Invalid API Key, please check it in [Settings](/#/settings) page."
-      : "Unauthorized access, please enter access code in [auth](/#/auth) page, or enter your OpenAI API Key.",
-  },
-  Auth: {
-    Title: "Need Access Code",
-    Tips: "Please enter access code below",
-    SubTips: "Or enter your OpenAI or Google API Key",
-    Input: "access code",
-    Confirm: "Confirm",
-    Later: "Later",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} messages`,
   },
@@ -182,55 +167,7 @@ const en: LocaleType = {
       Title: "Auto Generate Title",
       SubTitle: "Generate a suitable title based on the conversation content",
     },
-    Sync: {
-      CloudState: "Last Update",
-      NotSyncYet: "Not sync yet",
-      Success: "Sync Success",
-      Fail: "Sync Fail",
-
-      Config: {
-        Modal: {
-          Title: "Config Sync",
-          Check: "Check Connection",
-        },
-        SyncType: {
-          Title: "Sync Type",
-          SubTitle: "Choose your favorite sync service",
-        },
-        Proxy: {
-          Title: "Enable CORS Proxy",
-          SubTitle: "Enable a proxy to avoid cross-origin restrictions",
-        },
-        ProxyUrl: {
-          Title: "Proxy Endpoint",
-          SubTitle:
-            "Only applicable to the built-in CORS proxy for this project",
-        },
-
-        WebDav: {
-          Endpoint: "WebDAV Endpoint",
-          UserName: "User Name",
-          Password: "Password",
-        },
-
-        UpStash: {
-          Endpoint: "UpStash Redis REST Url",
-          UserName: "Backup Name",
-          Password: "UpStash Redis REST Token",
-        },
-      },
-
-      LocalState: "Local Data",
-      Overview: (overview: any) => {
-        return `${overview.chat} chats，${overview.message} messages，${overview.prompt} prompts，${overview.mask} masks`;
-      },
-      ImportFailed: "Failed to import from file",
-    },
     Mask: {
-      Splash: {
-        Title: "Mask Splash Screen",
-        SubTitle: "Show a mask splash screen before starting new chat",
-      },
       Builtin: {
         Title: "Hide Builtin Masks",
         SubTitle: "Hide builtin masks in mask list",

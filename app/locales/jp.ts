@@ -3,10 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const jp: PartialLocaleType = {
   WIP: "この機能は開発中です",
-  Error: {
-    Unauthorized:
-      "現在は未承認状態です。左下の設定ボタンをクリックし、アクセスパスワードかOpenAIのAPIキーを入力してください。",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} 通のチャット`,
   },
@@ -143,10 +139,6 @@ const jp: PartialLocaleType = {
       SubTitle: "プレビューバブルでマークダウンコンテンツをプレビュー",
     },
     Mask: {
-      Splash: {
-        Title: "キャラクターページ",
-        SubTitle: "新規チャット作成時にキャラクターページを表示する",
-      },
       Builtin: {
         Title: "ビルトインマスクを非表示",
         SubTitle: "マスクリストからビルトインを非表示する",

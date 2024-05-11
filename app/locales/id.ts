@@ -3,18 +3,6 @@ import { PartialLocaleType } from "./index";
 
 const id: PartialLocaleType = {
   WIP: "Coming Soon...",
-  Error: {
-    Unauthorized:
-      "Akses tidak diizinkan, silakan masukkan kode akses atau masukkan kunci API OpenAI Anda. di halaman [autentikasi](/#/auth) atau di halaman [Pengaturan](/#/settings).",
-  },
-  Auth: {
-    Title: "Diperlukan Kode Akses",
-    Tips: "Masukkan kode akses di bawah",
-    SubTips: "Atau masukkan kunci API OpenAI Anda",
-    Input: "Kode Akses",
-    Confirm: "Konfirmasi",
-    Later: "Nanti",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} pesan`,
   },
@@ -162,37 +150,6 @@ const id: PartialLocaleType = {
       Title: "Hasilkan Judul Otomatis",
       SubTitle: "Hasilkan judul yang sesuai berdasarkan konten percakapan",
     },
-    Sync: {
-      CloudState: "Pembaruan Terakhir",
-      NotSyncYet: "Belum disinkronkan",
-      Success: "Sinkronisasi Berhasil",
-      Fail: "Sinkronisasi Gagal",
-
-      Config: {
-        Modal: {
-          Title: "Konfigurasi Sinkronisasi",
-        },
-        SyncType: {
-          Title: "Tipe Sinkronisasi",
-          SubTitle: "Pilih layanan sinkronisasi favorit Anda",
-        },
-        Proxy: {
-          Title: "Aktifkan Proxy CORS",
-          SubTitle:
-            "Aktifkan Proxy untuk menghindari pembatasan atau pemblokiran lintas sumber",
-        },
-        ProxyUrl: {
-          Title: "Lokasi Titik Akhir Proxy CORS",
-          SubTitle: "Hanya berlaku untuk Proxy CORS bawaan untuk proyek ini",
-        },
-
-        WebDav: {
-          Endpoint: "Lokasi Titik Akhir WebDAV",
-          UserName: "User Pengguna",
-          Password: "Kata Sandi",
-        },
-      },
-    },
     SendKey: "Kirim",
     Theme: "Tema",
     TightBorder: "Batas Ketat",
@@ -201,11 +158,6 @@ const id: PartialLocaleType = {
       SubTitle: "Pratinjau Obrolan dengan markdown",
     },
     Mask: {
-      Splash: {
-        Title: "Layar Pembuka Masks",
-        SubTitle:
-          "Tampilkan layar pembuka masks sebelum memulai percakapan baru",
-      },
       Builtin: {
         Title: "Sembunyikan Masks Bawaan",
         SubTitle: "Sembunyikan Masks bawaan dari daftar masks",
@@ -288,7 +240,7 @@ const id: PartialLocaleType = {
   Copy: {
     Success: "Tersalin ke clipboard",
     Failed:
-      "Gagal menyalin, mohon berikan izin untuk mengakses clipboard atau Clipboard API tidak didukung (Tauri)",
+      "Gagal menyalin, mohon berikan izin untuk mengakses clipboard atau Clipboard API tidak didukung",
   },
   Download: {
     Success: "Konten berhasil diunduh ke direktori Anda.",
@@ -369,8 +321,8 @@ const id: PartialLocaleType = {
   },
   Exporter: {
     Description: {
-      Title: "Hanya pesan setelah menghapus konteks yang akan ditampilkan"
-    },  
+      Title: "Hanya pesan setelah menghapus konteks yang akan ditampilkan",
+    },
     Model: "Model",
     Messages: "Pesan",
     Topic: "Topik",

@@ -7,10 +7,8 @@
     "build": "cross-env BUILD_MODE=standalone next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "cross-env BUILD_MODE=export BUILD_APP=1 next build",
-    "export:dev": "cross-env BUILD_MODE=export BUILD_APP=1 next dev",
-    "app:dev": "yarn tauri dev",
-    "app:build": "yarn tauri build",
+    "export": "cross-env BUILD_MODE=export next build",
+    "export:dev": "cross-env BUILD_MODE=export next dev",
     "prompts": "node ./scripts/fetch-prompts.mjs",
     "prepare": "husky install",
     "proxy-dev": "sh ./scripts/init-proxy.sh && proxychains -f ./scripts/proxychains.conf yarn dev"
@@ -45,7 +43,6 @@
     "zustand": "^4.3.8"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "1.5.11",
     "@types/node": "^20.12.11",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.2.7",
@@ -66,5 +63,18 @@
   "resolutions": {
     "lint-staged/yaml": "^2.2.2"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.19",
+  "browser": {
+    "fs": false,
+    "path": false,
+    "perf_hooks": false,
+    "stream": false,
+    "stream-browserify": false,
+    "constants": false,
+    "module": false,
+    "os": false,
+    "process": false,
+    "util": false,
+    "assert": false
+  }
 }

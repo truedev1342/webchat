@@ -3,10 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const tr: PartialLocaleType = {
   WIP: "Çalışma devam ediyor...",
-  Error: {
-    Unauthorized:
-      "Yetkisiz erişim, lütfen erişim kodunu ayarlar [sayfasından](/#/auth) giriniz.",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} mesaj`,
   },
@@ -90,12 +86,6 @@ const tr: PartialLocaleType = {
     SendPreviewBubble: {
       Title: "Mesaj Önizleme Balonu",
       SubTitle: "Preview markdown in bubble",
-    },
-    Mask: {
-      Splash: {
-        Title: "Mask Splash Screen",
-        SubTitle: "Show a mask splash screen before starting new chat",
-      },
     },
     Prompt: {
       Disable: {

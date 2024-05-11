@@ -10,8 +10,6 @@ import {
   DEFAULT_SYSTEM_TEMPLATE,
   KnowledgeCutOffDate,
   StoreKey,
-  SUMMARIZE_MODEL,
-  GEMINI_SUMMARIZE_MODEL,
 } from "../constant";
 import { RequestMessage, MultimodalContent } from "../client/api";
 import { ChatControllerPool } from "../client/controller";
@@ -19,8 +17,6 @@ import { prettyObject } from "../utils/format";
 import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
-import { collectModelsWithDefaultModel } from "../utils/model";
-import { useAccessStore } from "./access";
 import { webllm } from "../client/webllm";
 
 export type ChatMessage = RequestMessage & {
@@ -83,27 +79,6 @@ function createEmptySession(): ChatSession {
 
     mask: createEmptyMask(),
   };
-}
-
-function getSummarizeModel(currentModel: string) {
-  // if it is using gpt-* models, force to use 3.5 to summarize
-  if (currentModel.startsWith("gpt")) {
-    const configStore = useAppConfig.getState();
-    const accessStore = useAccessStore.getState();
-    const allModel = collectModelsWithDefaultModel(
-      configStore.models,
-      [configStore.customModels, accessStore.customModels].join(","),
-      accessStore.defaultModel,
-    );
-    const summarizeModel = allModel.find(
-      (m) => m.name === SUMMARIZE_MODEL && m.available,
-    );
-    return summarizeModel?.name ?? currentModel;
-  }
-  if (currentModel.startsWith("gemini")) {
-    return GEMINI_SUMMARIZE_MODEL;
-  }
-  return currentModel;
 }
 
 function countMessages(msgs: ChatMessage[]) {
@@ -558,7 +533,7 @@ export const useChatStore = createPersistStore(
           webllm.chat({
             messages: topicMessages,
             config: {
-              model: getSummarizeModel(session.mask.modelConfig.model),
+              model: session.mask.modelConfig.model,
               stream: false,
             },
             onFinish(message) {
@@ -618,7 +593,7 @@ export const useChatStore = createPersistStore(
             config: {
               ...modelcfg,
               stream: true,
-              model: getSummarizeModel(session.mask.modelConfig.model),
+              model: session.mask.modelConfig.model,
             },
             onUpdate(message) {
               session.memoryPrompt = message;
@@ -661,54 +636,5 @@ export const useChatStore = createPersistStore(
   },
   {
     name: StoreKey.Chat,
-    version: 3.1,
-    migrate(persistedState, version) {
-      const state = persistedState as any;
-      const newState = JSON.parse(
-        JSON.stringify(state),
-      ) as typeof DEFAULT_CHAT_STATE;
-
-      if (version < 2) {
-        newState.sessions = [];
-
-        const oldSessions = state.sessions;
-        for (const oldSession of oldSessions) {
-          const newSession = createEmptySession();
-          newSession.topic = oldSession.topic;
-          newSession.messages = [...oldSession.messages];
-          newSession.mask.modelConfig.sendMemory = true;
-          newSession.mask.modelConfig.historyMessageCount = 4;
-          newSession.mask.modelConfig.compressMessageLengthThreshold = 1000;
-          newState.sessions.push(newSession);
-        }
-      }
-
-      if (version < 3) {
-        // migrate id to nanoid
-        newState.sessions.forEach((s) => {
-          s.id = nanoid();
-          s.messages.forEach((m) => (m.id = nanoid()));
-        });
-      }
-
-      // Enable `enableInjectSystemPrompts` attribute for old sessions.
-      // Resolve issue of old sessions not automatically enabling.
-      if (version < 3.1) {
-        newState.sessions.forEach((s) => {
-          if (
-            // Exclude those already set by user
-            !s.mask.modelConfig.hasOwnProperty("enableInjectSystemPrompts")
-          ) {
-            // Because users may have changed this configuration,
-            // the user's current configuration is used instead of the default
-            const config = useAppConfig.getState();
-            s.mask.modelConfig.enableInjectSystemPrompts =
-              config.modelConfig.enableInjectSystemPrompts;
-          }
-        });
-      }
-
-      return newState as any;
-    },
   },
 );

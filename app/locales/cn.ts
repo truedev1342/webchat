@@ -1,23 +1,7 @@
-import { getClientConfig } from "../config/client";
 import { SubmitKey } from "../store/config";
-
-const isApp = !!getClientConfig()?.isApp;
 
 const cn = {
   WIP: "该功能仍在开发中……",
-  Error: {
-    Unauthorized: isApp
-      ? "检测到无效 API Key，请前往[设置](/#/settings)页检查 API Key 是否配置正确。"
-      : "访问密码不正确或为空，请前往[登录](/#/auth)页输入正确的访问密码，或者在[设置](/#/settings)页填入你自己的 OpenAI API Key。",
-  },
-  Auth: {
-    Title: "需要密码",
-    Tips: "管理员开启了密码验证，请在下方填入访问码",
-    SubTips: "或者输入你的 OpenAI 或 Google API 密钥",
-    Input: "在此处填写访问码",
-    Confirm: "确认",
-    Later: "稍后再说",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} 条对话`,
   },
@@ -180,54 +164,7 @@ const cn = {
       Title: "自动生成标题",
       SubTitle: "根据对话内容生成合适的标题",
     },
-    Sync: {
-      CloudState: "云端数据",
-      NotSyncYet: "还没有进行过同步",
-      Success: "同步成功",
-      Fail: "同步失败",
-
-      Config: {
-        Modal: {
-          Title: "配置云同步",
-          Check: "检查可用性",
-        },
-        SyncType: {
-          Title: "同步类型",
-          SubTitle: "选择喜爱的同步服务器",
-        },
-        Proxy: {
-          Title: "启用代理",
-          SubTitle: "在浏览器中同步时，必须启用代理以避免跨域限制",
-        },
-        ProxyUrl: {
-          Title: "代理地址",
-          SubTitle: "仅适用于本项目自带的跨域代理",
-        },
-
-        WebDav: {
-          Endpoint: "WebDAV 地址",
-          UserName: "用户名",
-          Password: "密码",
-        },
-
-        UpStash: {
-          Endpoint: "UpStash Redis REST Url",
-          UserName: "备份名称",
-          Password: "UpStash Redis REST Token",
-        },
-      },
-
-      LocalState: "本地数据",
-      Overview: (overview: any) => {
-        return `${overview.chat} 次对话，${overview.message} 条消息，${overview.prompt} 条提示词，${overview.mask} 个面具`;
-      },
-      ImportFailed: "导入失败",
-    },
     Mask: {
-      Splash: {
-        Title: "面具启动页",
-        SubTitle: "新建聊天时，展示面具启动页",
-      },
       Builtin: {
         Title: "隐藏内置面具",
         SubTitle: "在所有面具列表中隐藏内置面具",

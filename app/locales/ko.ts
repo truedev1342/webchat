@@ -4,10 +4,6 @@ import type { PartialLocaleType } from "./index";
 
 const ko: PartialLocaleType = {
   WIP: "곧 출시 예정...",
-  Error: {
-    Unauthorized:
-      "권한이 없습니다. 설정 페이지에서 액세스 코드를 [입력하세요](/#/auth).",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count}개의 메시지`,
   },
@@ -91,12 +87,6 @@ const ko: PartialLocaleType = {
     SendPreviewBubble: {
       Title: "미리 보기 버블 전송",
       SubTitle: "버블에서 마크다운 미리 보기",
-    },
-    Mask: {
-      Splash: {
-        Title: "마스크 시작 화면",
-        SubTitle: "새로운 채팅 시작 전에 마스크 시작 화면 표시",
-      },
     },
     Prompt: {
       Disable: {

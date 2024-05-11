@@ -3,10 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const fr: PartialLocaleType = {
   WIP: "Prochainement...",
-  Error: {
-    Unauthorized:
-      "Accès non autorisé, veuillez saisir le code d'accès dans la [page](/#/auth) des paramètres.",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} messages en total`,
   },
@@ -136,11 +132,6 @@ const fr: PartialLocaleType = {
       SubTitle: "Aperçu du Markdown dans une bulle",
     },
     Mask: {
-      Splash: {
-        Title: "Écran de masque",
-        SubTitle:
-          "Afficher un écran de masque avant de démarrer une nouvelle discussion",
-      },
       Builtin: {
         Title: "Masquer Les Assistants Intégrés",
         SubTitle: "Masquer les assistants intégrés par défaut",

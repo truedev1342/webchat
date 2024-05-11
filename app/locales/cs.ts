@@ -3,10 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const cs: PartialLocaleType = {
   WIP: "V přípravě...",
-  Error: {
-    Unauthorized:
-      "Neoprávněný přístup, zadejte přístupový kód na [stránce](/#/auth) nastavení.",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} zpráv`,
   },
@@ -90,12 +86,6 @@ const cs: PartialLocaleType = {
     SendPreviewBubble: {
       Title: "Odesílat chatovací bublinu s náhledem",
       SubTitle: "Zobrazit v náhledu bubliny",
-    },
-    Mask: {
-      Splash: {
-        Title: "Úvodní obrazovka Masek",
-        SubTitle: "Před zahájením nového chatu zobrazte úvodní obrazovku Masek",
-      },
     },
     Prompt: {
       Disable: {

@@ -3,18 +3,6 @@ import { PartialLocaleType } from "./index";
 
 const bn: PartialLocaleType = {
   WIP: "শীঘ্রই আসছে...",
-  Error: {
-    Unauthorized:
-      "অননুমোদিত অ্যাক্সেস, অনুগ্রহ করে [অথোরাইজশন](/#/auth) পৃষ্ঠায় অ্যাক্সেস কোড ইনপুট করুন।",
-  },
-  Auth: {
-    Title: "একটি অ্যাক্সেস কোড প্রয়োজন",
-    Tips: "নীচে অ্যাক্সেস কোড ইনপুট করুন",
-    SubTips: "অথবা আপনার OpenAI API কী প্রবেশ করুন",
-    Input: "অ্যাক্সেস কোড",
-    Confirm: "নিশ্চিত করুন",
-    Later: "পরে",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} টি বার্তা`,
   },
@@ -162,11 +150,6 @@ const bn: PartialLocaleType = {
       SubTitle: "বুলবুলে মার্কডাউন প্রিভিউ করুন",
     },
     Mask: {
-      Splash: {
-        Title: "মাস্ক স্প্ল্যাশ স্ক্রিন",
-        SubTitle:
-          "নতুন চ্যাট শুরু করার আগে মাস্ক স্প্ল্যাশ স্ক্রিন প্রদর্শন করুন",
-      },
       Builtin: {
         Title: "মূলত মাস্ক গোপন করুন",
         SubTitle: "মাস্ক তালিকা থেকে মূলত মাস্কগুলি লুকান",

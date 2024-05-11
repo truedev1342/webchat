@@ -3,10 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const vi: PartialLocaleType = {
   WIP: "Sắp ra mắt...",
-  Error: {
-    Unauthorized:
-      "Truy cập chưa xác thực, vui lòng nhập mã truy cập trong trang cài đặt.",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} tin nhắn`,
   },
@@ -90,12 +86,6 @@ const vi: PartialLocaleType = {
     SendPreviewBubble: {
       Title: "Gửi bong bóng xem trước",
       SubTitle: "Xem trước nội dung markdown bằng bong bóng",
-    },
-    Mask: {
-      Splash: {
-        Title: "Mask Splash Screen",
-        SubTitle: "Chớp màn hình khi bắt đầu cuộc trò chuyện mới",
-      },
     },
     Prompt: {
       Disable: {

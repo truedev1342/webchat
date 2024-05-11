@@ -3,10 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const es: PartialLocaleType = {
   WIP: "En construcción...",
-  Error: {
-    Unauthorized:
-      "Acceso no autorizado, por favor ingrese el código de acceso en la [página](/#/auth) de configuración.",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} mensajes`,
   },
@@ -90,12 +86,6 @@ const es: PartialLocaleType = {
     SendPreviewBubble: {
       Title: "Enviar burbuja de vista previa",
       SubTitle: "Preview markdown in bubble",
-    },
-    Mask: {
-      Splash: {
-        Title: "Mask Splash Screen",
-        SubTitle: "Show a mask splash screen before starting new chat",
-      },
     },
     Prompt: {
       Disable: {

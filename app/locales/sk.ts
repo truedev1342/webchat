@@ -1,26 +1,10 @@
-import { getClientConfig } from "../config/client";
 import { SubmitKey } from "../store/config";
-import { LocaleType } from "./index";
 import type { PartialLocaleType } from "./index";
 
 // if you are adding a new translation, please use PartialLocaleType instead of LocaleType
 
-const isApp = !!getClientConfig()?.isApp;
 const sk: PartialLocaleType = {
   WIP: "Už čoskoro...",
-  Error: {
-    Unauthorized: isApp
-      ? "Neplatný API kľúč, prosím skontrolujte ho na stránke [Nastavenia](/#/settings)."
-      : "Neoprávnený prístup, prosím zadajte prístupový kód na stránke [auth](/#/auth), alebo zadajte váš OpenAI API kľúč.",
-  },
-  Auth: {
-    Title: "Potrebný prístupový kód",
-    Tips: "Prosím, zadajte prístupový kód nižšie",
-    SubTips: "Alebo zadajte váš OpenAI alebo Google API kľúč",
-    Input: "prístupový kód",
-    Confirm: "Potvrdiť",
-    Later: "Neskôr",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} správ`,
   },
@@ -183,54 +167,7 @@ const sk: PartialLocaleType = {
       Title: "Automaticky generovať názov",
       SubTitle: "Generovať vhodný názov na základe obsahu konverzácie",
     },
-    Sync: {
-      CloudState: "Posledná aktualizácia",
-      NotSyncYet: "Zatiaľ nesynchronizované",
-      Success: "Synchronizácia úspešná",
-      Fail: "Synchronizácia zlyhala",
-
-      Config: {
-        Modal: {
-          Title: "Konfigurácia synchronizácie",
-          Check: "Skontrolovať pripojenie",
-        },
-        SyncType: {
-          Title: "Typ synchronizácie",
-          SubTitle: "Vyberte svoju obľúbenú službu synchronizácie",
-        },
-        Proxy: {
-          Title: "Povoliť CORS Proxy",
-          SubTitle: "Povoliť proxy na obídenie obmedzení cross-origin",
-        },
-        ProxyUrl: {
-          Title: "Koncový bod Proxy",
-          SubTitle: "Platné len pre vstavaný CORS proxy tohto projektu",
-        },
-
-        WebDav: {
-          Endpoint: "Koncový bod WebDAV",
-          UserName: "Meno používateľa",
-          Password: "Heslo",
-        },
-
-        UpStash: {
-          Endpoint: "URL REST služby UpStash Redis",
-          UserName: "Názov zálohy",
-          Password: "Token REST služby UpStash Redis",
-        },
-      },
-
-      LocalState: "Lokálne údaje",
-      Overview: (overview: any) => {
-        return `${overview.chat} chaty, ${overview.message} správy, ${overview.prompt} výzvy, ${overview.mask} masky`;
-      },
-      ImportFailed: "Import z súboru zlyhal",
-    },
     Mask: {
-      Splash: {
-        Title: "Úvodná obrazovka masky",
-        SubTitle: "Zobraziť úvodnú obrazovku masky pred začatím nového chatu",
-      },
       Builtin: {
         Title: "Skryť vstavané masky",
         SubTitle: "Skryť vstavané masky v zozname masiek",

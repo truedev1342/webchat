@@ -3,18 +3,6 @@ import type { PartialLocaleType } from "./index";
 
 const ar: PartialLocaleType = {
   WIP: "قريبًا...",
-  Error: {
-    Unauthorized:
-      "غير مصرح بالوصول، يرجى إدخال رمز الوصول [auth](/#/auth) في صفحة المصادقة.",
-  },
-  Auth: {
-    Title: "تحتاج إلى رمز الوصول",
-    Tips: "يرجى إدخال رمز الوصول أدناه",
-    SubTips: "أو أدخل مفتاح واجهة برمجة تطبيقات OpenAI الخاص بك",
-    Input: "رمز الوصول",
-    Confirm: "تأكيد",
-    Later: "لاحقًا",
-  },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} رسائل`,
   },
@@ -134,12 +122,6 @@ const ar: PartialLocaleType = {
     SendPreviewBubble: {
       Title: "عرض معاينة الـ Send",
       SubTitle: "معاينة Markdown في فقاعة",
-    },
-    Mask: {
-      Splash: {
-        Title: "شاشة تظهر الأقنعة",
-        SubTitle: "عرض شاشة تظهر الأقنعة قبل بدء الدردشة الجديدة",
-      },
     },
     Prompt: {
       Disable: {
