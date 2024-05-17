@@ -3,20 +3,20 @@
 
 # WebLLM Chat
 
-<a href="https://chat.webllm.ai"><img alt="GitHub deployments" src="https://img.shields.io/github/deployments/mlc-ai/webchat/github-pages">
+<a href="https://chat.webllm.ai"><img alt="GitHub Pages Deployed" src="https://img.shields.io/badge/GitHub_Pages-Deployed-%2332a852?logo=github">
 <a href="https://discord.gg/9Xpy2HGBuD"><img alt="Static Badge" src="https://img.shields.io/badge/Join-Discord-7289DA"></a>
 
 **Private AI Conversations, Fully In-Browser.**
 
 [**Chat Now**](https://chat.webllm.ai/)
 
-<a href="https://chat.webllm.ai"><img alt="WebLLM Chat" src="./docs/images/webchat.gif"></a>
+[WebLLM Chat Demo Video](https://github.com/mlc-ai/webchat/assets/23090573/f700e27e-bb88-4068-bc8b-8a33ea5a4300)
 
 </div>
 
 ## Overview
 
-**WebLLM Chat** is an AI chat webapp that brings [WebLLM](https://github.com/mlc-ai/web-llm) with a user-friendly interface to deliver an fully open-source and accssible AI chat application. WebLLM Chat leverages WebGPU to run large language models (LLMs) natively in your browser, offering a seamless AI chatting experience with unprecedented privacy and performance.
+**WebLLM Chat** is a private AI chat interface that combines [WebLLM](https://github.com/mlc-ai/web-llm) with a user-friendly design, leveraging WebGPU to run large language models (LLMs) natively in your browser. Enjoy an unprecedented, private, and accessible AI conversation experience.
 
 ## Key Features
 
