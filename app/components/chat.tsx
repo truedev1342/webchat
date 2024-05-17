@@ -340,6 +340,7 @@ function ChatAction(props: {
   text: string;
   icon: JSX.Element;
   onClick: () => void;
+  fullWidth?: boolean;
 }) {
   const iconRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -359,7 +360,19 @@ function ChatAction(props: {
     });
   }
 
-  return (
+  return props.fullWidth ? (
+    <div
+      className={`${styles["chat-input-action"]} clickable ${styles["full-width"]}`}
+      onClick={props.onClick}
+    >
+      <div ref={iconRef} className={styles["icon"]}>
+        {props.icon}
+      </div>
+      <div className={styles["text"]} ref={textRef}>
+        {props.text}
+      </div>
+    </div>
+  ) : (
     <div
       className={`${styles["chat-input-action"]} clickable`}
       onClick={() => {
@@ -445,17 +458,16 @@ export function ChatActions(props: {
   const currentModel = chatStore.currentSession().mask.modelConfig.model;
   const allModels = useAllModels();
   const models = useMemo(() => {
-    const filteredModels = allModels.filter((m) => m.available);
-    const defaultModel = filteredModels.find((m) => m.isDefault);
+    const defaultModel = allModels.find((m) => m.is_default);
 
     if (defaultModel) {
       const arr = [
         defaultModel,
-        ...filteredModels.filter((m) => m !== defaultModel),
+        ...allModels.filter((m) => m !== defaultModel),
       ];
       return arr;
     } else {
-      return filteredModels;
+      return allModels;
     }
   }, [allModels]);
   const [showModelSelector, setShowModelSelector] = useState(false);
@@ -474,7 +486,7 @@ export function ChatActions(props: {
     if (isUnavaliableModel && models.length > 0) {
       // show next model to default model if exist
       let nextModel: ModelType = (
-        models.find((model) => model.isDefault) || models[0]
+        models.find((model) => model.is_default) || models[0]
       ).name;
       chatStore.updateCurrentSession(
         (session) => (session.mask.modelConfig.model = nextModel),
@@ -556,13 +568,14 @@ export function ChatActions(props: {
         onClick={() => setShowModelSelector(true)}
         text={currentModel}
         icon={<RobotIcon />}
+        fullWidth
       />
 
       {showModelSelector && (
         <Selector
           defaultSelectedValue={currentModel}
           items={models.map((m) => ({
-            title: m.displayName,
+            title: m.display_name,
             value: m.name,
           }))}
           onClose={() => setShowModelSelector(false)}
