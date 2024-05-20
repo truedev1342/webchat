@@ -18,6 +18,7 @@ const cn = {
       ChatList: "查看消息列表",
       CompressedHistory: "查看压缩后的历史 Prompt",
       Export: "导出聊天记录",
+      Share: "分享",
       Copy: "复制",
       Stop: "停止",
       Retry: "重试",
@@ -54,9 +55,9 @@ const cn = {
     Input: (submitKey: string) => {
       var inputHints = `${submitKey} 发送`;
       if (submitKey === String(SubmitKey.Enter)) {
-        inputHints += "，Shift + Enter 换行";
+        inputHints += ", Shift + Enter 换行";
       }
-      return inputHints + "，/ 触发补全，: 触发命令";
+      return inputHints + ", / 触发补全，: 触发命令";
     },
     Send: "发送",
     Config: {
@@ -356,6 +357,7 @@ const cn = {
       SubTitle: (count: number) => `${count} 个预设角色定义`,
       Search: "搜索角色模版",
       Create: "新建",
+      Save: "保存",
     },
     Item: {
       Info: (count: number) => `包含 ${count} 条预设对话`,

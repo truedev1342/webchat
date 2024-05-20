@@ -11,7 +11,6 @@ import {
   StoreKey,
 } from "../constant";
 import { RequestMessage, MultimodalContent } from "../client/api";
-import { ChatControllerPool } from "../client/controller";
 import { prettyObject } from "../utils/format";
 import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
@@ -180,15 +179,8 @@ export const useChatStore = createPersistStore(
         const session = createEmptySession();
 
         if (template) {
-          const config = useAppConfig.getState();
-          const globalModelConfig = config.modelConfig;
-
           session.template = {
             ...template,
-            modelConfig: {
-              ...globalModelConfig,
-              ...template.modelConfig,
-            },
           };
           session.topic = template.name;
         }
@@ -288,7 +280,7 @@ export const useChatStore = createPersistStore(
         attachImages?: string[],
       ) {
         const session = get().currentSession();
-        const modelConfig = session.template.modelConfig;
+        const modelConfig = useAppConfig.getState().modelConfig;
 
         const userContent = fillTemplateWith(content, modelConfig);
         console.log("[User Input] after template: ", userContent);
@@ -370,7 +362,6 @@ export const useChatStore = createPersistStore(
             get().updateCurrentSession((session) => {
               session.isGenerating = false;
             });
-            ChatControllerPool.remove(session.id, botMessage.id);
           },
           onError(error) {
             const isAborted = error.message.includes("aborted");
@@ -387,20 +378,8 @@ export const useChatStore = createPersistStore(
               session.messages = session.messages.concat();
               session.isGenerating = false;
             });
-            ChatControllerPool.remove(
-              session.id,
-              botMessage.id ?? messageIndex,
-            );
 
             console.error("[Chat] failed ", error);
-          },
-          onController(controller) {
-            // collect controller for stop/retry
-            ChatControllerPool.addController(
-              session.id,
-              botMessage.id ?? messageIndex,
-              controller,
-            );
           },
         });
       },
@@ -420,7 +399,7 @@ export const useChatStore = createPersistStore(
 
       getMessagesWithMemory() {
         const session = get().currentSession();
-        const modelConfig = session.template.modelConfig;
+        const modelConfig = useAppConfig.getState().modelConfig;
         const clearContextIndex = session.clearContextIndex ?? 0;
         const messages = session.messages.slice();
         const totalMessageCount = session.messages.length;
@@ -525,7 +504,7 @@ export const useChatStore = createPersistStore(
       summarizeSession(webllm: WebLLMApi) {
         const config = useAppConfig.getState();
         const session = get().currentSession();
-        const modelConfig = session.template.modelConfig;
+        const modelConfig = useAppConfig.getState().modelConfig;
 
         // remove error messages if any
         const messages = session.messages;
@@ -546,7 +525,7 @@ export const useChatStore = createPersistStore(
           webllm.chat({
             messages: topicMessages,
             config: {
-              model: session.template.modelConfig.model,
+              model: modelConfig.model,
               cache: useAppConfig.getState().cacheType,
               stream: false,
             },
@@ -630,7 +609,7 @@ export const useChatStore = createPersistStore(
             config: {
               ...modelcfg,
               stream: true,
-              model: session.template.modelConfig.model,
+              model: modelConfig.model,
               cache: useAppConfig.getState().cacheType,
             },
             onUpdate(message) {

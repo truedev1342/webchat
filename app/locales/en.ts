@@ -22,6 +22,7 @@ const en = {
       Export: "Export All Messages as Markdown",
       Copy: "Copy",
       Stop: "Stop",
+      Share: "Share",
       Retry: "Retry",
       Pin: "Pin",
       PinToastContent: "Pinned 1 messages to contextual prompts",
@@ -64,6 +65,7 @@ const en = {
     Config: {
       Reset: "Reset to Default",
       SaveAs: "Save as Template",
+      Confirm: "Confirm",
     },
     IsContext: "Contextual Prompt",
   },
@@ -374,6 +376,7 @@ const en = {
     EditModal: {
       Title: (readonly: boolean) =>
         `Edit Prompt Template ${readonly ? "(readonly)" : ""}`,
+      Save: "Save",
       Download: "Download",
       Clone: "Clone",
     },

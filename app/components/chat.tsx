@@ -10,17 +10,17 @@ import React, {
   useContext,
 } from "react";
 
+import ShareIcon from "../icons/share.svg";
 import SendWhiteIcon from "../icons/send-white.svg";
-import BrainIcon from "../icons/brain.svg";
 import RenameIcon from "../icons/rename.svg";
-import ExportIcon from "../icons/share.svg";
+import ExportIcon from "../icons/export.svg";
 import ReturnIcon from "../icons/return.svg";
 import CopyIcon from "../icons/copy.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import LoadingButtonIcon from "../icons/loading.svg";
 import PromptIcon from "../icons/prompt.svg";
-import TemplateIcon from "../icons/chat.svg";
 import MaxIcon from "../icons/max.svg";
+import BrainIcon from "../icons/brain.svg";
 import MinIcon from "../icons/min.svg";
 import ResetIcon from "../icons/reload.svg";
 import BreakIcon from "../icons/break.svg";
@@ -32,9 +32,6 @@ import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
 import ImageIcon from "../icons/image.svg";
 
-import LightIcon from "../icons/light.svg";
-import DarkIcon from "../icons/dark.svg";
-import AutoIcon from "../icons/auto.svg";
 import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
 import RobotIcon from "../icons/robot.svg";
@@ -45,7 +42,6 @@ import {
   useChatStore,
   BOT_HELLO,
   createMessage,
-  Theme,
   useAppConfig,
   DEFAULT_TOPIC,
   ModelType,
@@ -64,7 +60,6 @@ import {
 
 import dynamic from "next/dynamic";
 
-import { ChatControllerPool } from "../client/controller";
 import { Prompt, usePromptStore } from "../store/prompt";
 import Locale from "../locales";
 
@@ -90,7 +85,6 @@ import {
 } from "../constant";
 import { Avatar } from "./emoji";
 import { ContextPrompts, TemplateAvatar, TemplateConfig } from "./template";
-import { useTemplateStore } from "../store/template";
 import { ChatCommandPrefix, useChatCommand, useCommand } from "../command";
 import { prettyObject } from "../utils/format";
 import { ExportMessageModal } from "./exporter";
@@ -98,10 +92,22 @@ import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
 import { MultimodalContent } from "../client/api";
 import { WebLLMContext } from "../client/webllm";
+import { useTemplateStore } from "../store/template";
 
-const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
-  loading: () => <LoadingIcon />,
-});
+export function ScrollDownToast(prop: { show: boolean; onclick: () => void }) {
+  return (
+    <div
+      className={
+        styles["toast-container"] + (prop.show ? ` ${styles["show"]}` : "")
+      }
+      onClick={() => prop.onclick()}
+    >
+      <div className={styles["toast-content"]}>
+        <BottomIcon />
+      </div>
+    </div>
+  );
+}
 
 export function SessionConfigModel(props: { onClose: () => void }) {
   const chatStore = useChatStore();
@@ -140,6 +146,13 @@ export function SessionConfigModel(props: { onClose: () => void }) {
               }, 500);
             }}
           />,
+          <IconButton
+            key="Confirm"
+            icon={<ConfirmIcon />}
+            bordered
+            text={Locale.Chat.Config.Confirm}
+            onClick={props.onClose}
+          />,
         ]}
       >
         <TemplateConfig
@@ -151,17 +164,6 @@ export function SessionConfigModel(props: { onClose: () => void }) {
               (session) => (session.template = template),
             );
           }}
-          extraListItems={
-            session.template.modelConfig.sendMemory ? (
-              <ListItem
-                className="copyable"
-                title={`${Locale.Memory.Title} (${session.lastSummarizeIndex} of ${session.messages.length})`}
-                subTitle={session.memoryPrompt || Locale.Memory.EmptyContent}
-              ></ListItem>
-            ) : (
-              <></>
-            )
-          }
         ></TemplateConfig>
       </Modal>
     </div>
@@ -197,6 +199,10 @@ function PromptToast(props: {
     </div>
   );
 }
+
+const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
+  loading: () => <LoadingIcon />,
+});
 
 function useSubmitHandler() {
   const config = useAppConfig();
@@ -443,21 +449,10 @@ export function ChatActions(props: {
   uploading: boolean;
 }) {
   const config = useAppConfig();
-  const navigate = useNavigate();
   const chatStore = useChatStore();
 
-  // switch themes
-  const theme = config.theme;
-  function nextTheme() {
-    const themes = [Theme.Auto, Theme.Light, Theme.Dark];
-    const themeIndex = themes.indexOf(theme);
-    const nextIndex = (themeIndex + 1) % themes.length;
-    const nextTheme = themes[nextIndex];
-    config.update((config) => (config.theme = nextTheme));
-  }
-
   // switch model
-  const currentModel = chatStore.currentSession().template.modelConfig.model;
+  const currentModel = config.modelConfig.model;
   const allModels = useAllModels();
   const models = useMemo(() => {
     const defaultModel = allModels.find((m) => m.is_default);
@@ -482,38 +477,15 @@ export function ChatActions(props: {
       props.setAttachImages([]);
       props.setUploading(false);
     }
-    // if current model is not available
-    // switch to first available model
-    const isUnavaliableModel = !models.some((m) => m.name === currentModel);
-    if (isUnavaliableModel && models.length > 0) {
-      // show next model to default model if exist
-      let nextModel: ModelType = (
-        models.find((model) => model.is_default) || models[0]
-      ).name;
-      chatStore.updateCurrentSession(
-        (session) => (session.template.modelConfig.model = nextModel),
-      );
-      showToast(nextModel);
-    }
   }, [chatStore, currentModel, models]);
 
   return (
     <div className={styles["chat-input-actions"]}>
-      {!props.hitBottom && (
-        <ChatAction
-          onClick={props.scrollToBottom}
-          text={Locale.Chat.InputActions.ToBottom}
-          icon={<BottomIcon />}
-        />
-      )}
-      {props.hitBottom && (
-        <ChatAction
-          onClick={props.showPromptModal}
-          text={Locale.Chat.InputActions.Settings}
-          icon={<SettingsIcon />}
-        />
-      )}
-
+      <ChatAction
+        onClick={props.showPromptModal}
+        text={Locale.Chat.InputActions.Settings}
+        icon={<SettingsIcon />}
+      />
       {showUploadImage && (
         <ChatAction
           onClick={props.uploadImage}
@@ -522,35 +494,10 @@ export function ChatActions(props: {
         />
       )}
       <ChatAction
-        onClick={nextTheme}
-        text={Locale.Chat.InputActions.Theme[theme]}
-        icon={
-          <>
-            {theme === Theme.Auto ? (
-              <AutoIcon />
-            ) : theme === Theme.Light ? (
-              <LightIcon />
-            ) : theme === Theme.Dark ? (
-              <DarkIcon />
-            ) : null}
-          </>
-        }
-      />
-
-      <ChatAction
         onClick={props.showPromptHints}
         text={Locale.Chat.InputActions.Prompt}
         icon={<PromptIcon />}
       />
-
-      <ChatAction
-        onClick={() => {
-          navigate(Path.Templates);
-        }}
-        text={Locale.Chat.InputActions.Templates}
-        icon={<TemplateIcon />}
-      />
-
       <ChatAction
         text={Locale.Chat.InputActions.Clear}
         icon={<BreakIcon />}
@@ -565,7 +512,6 @@ export function ChatActions(props: {
           });
         }}
       />
-
       <ChatAction
         onClick={() => setShowModelSelector(true)}
         text={currentModel}
@@ -577,16 +523,12 @@ export function ChatActions(props: {
         <Selector
           defaultSelectedValue={currentModel}
           items={models.map((m) => ({
-            title: m.display_name,
+            title: m.name,
             value: m.name,
           }))}
           onClose={() => setShowModelSelector(false)}
           onSelection={(s) => {
             if (s.length === 0) return;
-            chatStore.updateCurrentSession((session) => {
-              session.template.modelConfig.model = s[0] as ModelType;
-              session.template.syncGlobalConfig = false;
-            });
             config.updateModelConfig({ model: s[0] as ModelType });
             showToast(s[0]);
           }}
@@ -836,15 +778,7 @@ function _Chat() {
           }
         }
       });
-
-      // auto sync template config from global config
-      if (session.template.syncGlobalConfig) {
-        console.log(
-          "[Template] syncing from global, name = ",
-          session.template.name,
-        );
-        session.template.modelConfig = { ...config.modelConfig };
-      }
+      session.messages.filter((m) => m.content.length > 0);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1094,8 +1028,7 @@ function _Chat() {
 
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      const currentModel =
-        chatStore.currentSession().template.modelConfig.model;
+      const currentModel = config.modelConfig.model;
       if (!isVisionModel(currentModel)) {
         return;
       }
@@ -1220,6 +1153,29 @@ function _Chat() {
           )}
           <div className="window-action-button">
             <IconButton
+              icon={<ShareIcon />}
+              bordered
+              title={Locale.Chat.Actions.Share}
+              onClick={() => {
+                const params = new URLSearchParams({
+                  model: config.modelConfig.model,
+                  temperature: config.modelConfig.temperature.toString(),
+                  top_p: config.modelConfig.top_p.toString(),
+                  max_tokens: config.modelConfig.max_tokens.toString(),
+                  presence_penalty:
+                    config.modelConfig.presence_penalty.toString(),
+                  frequency_penalty:
+                    config.modelConfig.frequency_penalty.toString(),
+                });
+                const shareUrl = new URL(
+                  `${window.location.origin}${window.location.pathname}?${params}`,
+                );
+                copyToClipboard(shareUrl.href);
+              }}
+            />
+          </div>
+          <div className="window-action-button">
+            <IconButton
               icon={<ExportIcon />}
               bordered
               title={Locale.Chat.Actions.Export}
@@ -1241,13 +1197,13 @@ function _Chat() {
               />
             </div>
           )}
-        </div>
 
-        <PromptToast
-          showToast={!hitBottom}
-          showModal={showPromptModal}
-          setShowModal={setShowPromptModal}
-        />
+          <PromptToast
+            showToast={!hitBottom}
+            showModal={showPromptModal}
+            setShowModal={setShowPromptModal}
+          />
+        </div>
       </div>
 
       <div
@@ -1272,7 +1228,7 @@ function _Chat() {
           const shouldShowClearContextDivider = i === clearContextIndex - 1;
 
           return (
-            <Fragment key={message.id}>
+            <Fragment key={`${i}/${message.id}`}>
               <div
                 className={
                   isUser ? styles["chat-message-user"] : styles["chat-message"]
@@ -1284,14 +1240,11 @@ function _Chat() {
                       {!isUser && (
                         <>
                           {["system"].includes(message.role) ? (
-                            <Avatar avatar="2699-fe0f" />
+                            <Avatar avatar="2699-fe0f" /> // Gear icon
                           ) : (
                             <TemplateAvatar
                               avatar={session.template.avatar}
-                              model={
-                                message.model ||
-                                session.template.modelConfig.model
-                              }
+                              model={message.model || config.modelConfig.model}
                             />
                           )}
                         </>
@@ -1302,7 +1255,17 @@ function _Chat() {
                     >
                       {!isUser && (
                         <div className={styles["chat-message-model-name"]}>
-                          {message.model}
+                          {config.models.find((m) => m.name === message.model)
+                            ? `${
+                                config.models.find(
+                                  (m) => m.name === message.model,
+                                )!.display_name
+                              } ${
+                                config.models.find(
+                                  (m) => m.name === message.model,
+                                )?.size || ""
+                              }`
+                            : message.model}
                         </div>
                       )}
                       {showActions && (
@@ -1450,8 +1413,8 @@ function _Chat() {
           );
         })}
       </div>
-
       <div className={styles["chat-input-panel"]}>
+        <ScrollDownToast onclick={scrollToBottom} show={!hitBottom} />
         <PromptHints prompts={promptHints} onPromptSelect={onPromptSelect} />
 
         <ChatActions

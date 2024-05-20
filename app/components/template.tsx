@@ -3,6 +3,7 @@ import { ErrorBoundary } from "./error";
 
 import styles from "./template.module.scss";
 
+import ConfirmIcon from "../icons/confirm.svg";
 import DownloadIcon from "../icons/download.svg";
 import UploadIcon from "../icons/upload.svg";
 import EditIcon from "../icons/edit.svg";
@@ -21,7 +22,6 @@ import {
 import {
   ChatMessage,
   createMessage,
-  ModelConfig,
   ModelType,
   useAppConfig,
   useChatStore,
@@ -83,18 +83,7 @@ export function TemplateConfig(props: {
   readonly?: boolean;
 }) {
   const [showPicker, setShowPicker] = useState(false);
-
-  const updateConfig = (updater: (config: ModelConfig) => void) => {
-    if (props.readonly) return;
-
-    const config = { ...props.template.modelConfig };
-    updater(config);
-    props.updateTemplate((template) => {
-      template.modelConfig = config;
-      // if user changed current session template, it will disable auto sync
-      template.syncGlobalConfig = false;
-    });
-  };
+  const config = useAppConfig();
 
   return (
     <>
@@ -127,7 +116,7 @@ export function TemplateConfig(props: {
             >
               <TemplateAvatar
                 avatar={props.template.avatar}
-                model={props.template.modelConfig.model}
+                model={config.modelConfig.model}
               />
             </div>
           </Popover>
@@ -157,14 +146,6 @@ export function TemplateConfig(props: {
             }}
           ></input>
         </ListItem>
-      </List>
-
-      <List>
-        <ModelConfigList
-          modelConfig={{ ...props.template.modelConfig }}
-          updateConfig={updateConfig}
-        />
-        {props.extraListItems}
       </List>
     </>
   );
@@ -514,8 +495,7 @@ export function TemplatePage() {
                 <div className={styles["template-header"]}>
                   <div className={styles["template-icon"]}>
                     <TemplateAvatar
-                      avatar={m.avatar}
-                      model={m.modelConfig.model}
+                      avatar={m.avatar || DEFAULT_TEMPLATE_AVATAR}
                     />
                   </div>
                   <div className={styles["template-title"]}>
@@ -523,7 +503,7 @@ export function TemplatePage() {
                     <div className={styles["template-info"] + " one-line"}>
                       {`${Locale.Template.Item.Info(m.context.length)} / ${
                         ALL_LANG_OPTIONS[m.lang]
-                      } / ${m.modelConfig.model}`}
+                      }`}
                     </div>
                   </div>
                 </div>
@@ -575,6 +555,13 @@ export function TemplatePage() {
             title={Locale.Template.EditModal.Title(editingTemplate?.builtin)}
             onClose={closeTemplateModal}
             actions={[
+              <IconButton
+                icon={<ConfirmIcon />}
+                text={Locale.Template.EditModal.Save}
+                key="save"
+                bordered
+                onClick={closeTemplateModal}
+              />,
               <IconButton
                 icon={<DownloadIcon />}
                 text={Locale.Template.EditModal.Download}
