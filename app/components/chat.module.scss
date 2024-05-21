@@ -366,10 +366,10 @@
   align-items: flex-start;
 
   .chat-message-header {
-    .chat-message-model-name-container {
+    .chat-message-role-name-container {
       position: relative;
 
-      .chat-message-model-name {
+      .chat-message-role-name {
         position: absolute;
         text-wrap: nowrap;
         top: 50%;
@@ -387,7 +387,7 @@
       transform: scale(1) translateY(0);
     }
 
-    .chat-message-model-name {
+    .chat-message-role-name:not(.no-hide) {
       opacity: 0;
     }
   }
@@ -621,7 +621,7 @@
   }
 }
 
-.chat-message-model-name {
+.chat-message-role-name {
   font-size: 14px;
   margin-left: 8px;
 }
@@ -636,14 +636,16 @@
   opacity: 0;
 
   transition: all ease 0.2s;
-  cursor: pointer;
 
   display: flex;
   justify-content: center;
+  z-index: -1;
+  pointer-events: none;
 
   &.show {
     top: -54px;
     opacity: 1;
+    z-index: 1;
   }
 
   .toast-content {
@@ -656,5 +658,7 @@
     margin-bottom: 20px;
     display: flex;
     align-items: center;
+    cursor: pointer;
+    pointer-events: all;
   }
 }

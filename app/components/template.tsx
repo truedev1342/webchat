@@ -37,19 +37,18 @@ import {
   showConfirm,
 } from "./ui-lib";
 import { Avatar, AvatarPicker } from "./emoji";
-import Locale, { AllLangs, ALL_LANG_OPTIONS, Lang } from "../locales";
+import Locale from "../locales";
 import { useNavigate } from "react-router-dom";
 
 import chatStyle from "./chat.module.scss";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   copyToClipboard,
   downloadAs,
   getMessageImages,
   readFromFile,
 } from "../utils";
-import { Updater } from "../typing";
-import { ModelConfigList } from "./model-config";
+import { MessageRole, Updater } from "../typing";
 import { FileName, Path } from "../constant";
 import { BUILTIN_TEMPLATE_STORE } from "../templates";
 import {
@@ -107,7 +106,7 @@ export function TemplateConfig(props: {
                 }}
               ></AvatarPicker>
             }
-            open={showPicker}
+            open={!props.readonly && showPicker}
             onClose={() => setShowPicker(false)}
           >
             <div
@@ -130,6 +129,7 @@ export function TemplateConfig(props: {
                 template.name = e.currentTarget.value;
               })
             }
+            disabled={props.readonly}
           ></input>
         </ListItem>
         <ListItem
@@ -154,6 +154,7 @@ export function TemplateConfig(props: {
 function ContextPromptItem(props: {
   index: number;
   prompt: ChatMessage;
+  roles: MessageRole[];
   update: (prompt: ChatMessage) => void;
   remove: () => void;
 }) {
@@ -176,7 +177,7 @@ function ContextPromptItem(props: {
               })
             }
           >
-            {ROLES.map((r) => (
+            {props.roles.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
@@ -253,6 +254,11 @@ export function ContextPrompts(props: {
       result.source.index,
       result.destination.index,
     );
+    newContext.forEach((c, i) => {
+      if (i > 0 && c.role === "system") {
+        c.role = "assistant";
+      }
+    });
     props.updateContext((context) => {
       context.splice(0, context.length, ...newContext);
     });
@@ -280,6 +286,9 @@ export function ContextPrompts(props: {
                         <ContextPromptItem
                           index={i}
                           prompt={c}
+                          roles={ROLES.filter((r) =>
+                            i > 0 ? r !== "system" : true,
+                          )}
                           update={(prompt) => updateContextPrompt(i, prompt)}
                           remove={() => removeContextPrompt(i)}
                         />
@@ -339,20 +348,7 @@ export function TemplatePage() {
   const templateStore = useTemplateStore();
   const chatStore = useChatStore();
 
-  const [filterLang, setFilterLang] = useState<Lang | undefined>(
-    () => localStorage.getItem("Template-language") as Lang | undefined,
-  );
-  useEffect(() => {
-    if (filterLang) {
-      localStorage.setItem("Template-language", filterLang);
-    } else {
-      localStorage.removeItem("Template-language");
-    }
-  }, [filterLang]);
-
-  const allTemplates = templateStore
-    .getAll()
-    .filter((m) => !filterLang || m.lang === filterLang);
+  const allTemplates = templateStore.getAll();
 
   const [searchTemplates, setSearchTemplates] = useState<Template[]>([]);
   const [searchText, setSearchText] = useState("");
@@ -415,7 +411,7 @@ export function TemplatePage() {
               {Locale.Template.Page.Title}
             </div>
             <div className="window-header-submai-title">
-              {Locale.Template.Page.SubTitle(allTemplates.length)}
+              {Locale.Template.Page.SubTitle}
             </div>
           </div>
 
@@ -455,27 +451,6 @@ export function TemplatePage() {
               autoFocus
               onInput={(e) => onSearch(e.currentTarget.value)}
             />
-            <Select
-              className={styles["template-filter-lang"]}
-              value={filterLang ?? Locale.Settings.Lang.All}
-              onChange={(e) => {
-                const value = e.currentTarget.value;
-                if (value === Locale.Settings.Lang.All) {
-                  setFilterLang(undefined);
-                } else {
-                  setFilterLang(value as Lang);
-                }
-              }}
-            >
-              <option key="all" value={Locale.Settings.Lang.All}>
-                {Locale.Settings.Lang.All}
-              </option>
-              {AllLangs.map((lang) => (
-                <option value={lang} key={lang}>
-                  {ALL_LANG_OPTIONS[lang]}
-                </option>
-              ))}
-            </Select>
 
             <IconButton
               className={styles["template-create"]}
@@ -501,9 +476,7 @@ export function TemplatePage() {
                   <div className={styles["template-title"]}>
                     <div className={styles["template-name"]}>{m.name}</div>
                     <div className={styles["template-info"] + " one-line"}>
-                      {`${Locale.Template.Item.Info(m.context.length)} / ${
-                        ALL_LANG_OPTIONS[m.lang]
-                      }`}
+                      {Locale.Template.Item.Info(m.context.length)}
                     </div>
                   </div>
                 </div>

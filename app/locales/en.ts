@@ -3,6 +3,8 @@ import { SubmitKey } from "../store/config";
 // if you are adding a new translation, please use PartialLocaleType instead of LocaleType
 
 const en = {
+  Title: "WebLLM Chat",
+  Subtitle: "AI Models Running in Browser",
   WIP: "Coming Soon...",
   ChatItem: {
     ChatItemCount: (count: number) => `${count} messages`,
@@ -24,9 +26,6 @@ const en = {
       Stop: "Stop",
       Share: "Share",
       Retry: "Retry",
-      Pin: "Pin",
-      PinToastContent: "Pinned 1 messages to contextual prompts",
-      PinToastAction: "View",
       Delete: "Delete",
       Edit: "Edit",
     },
@@ -37,6 +36,11 @@ const en = {
       prev: "Previous Chat",
       clear: "Clear Context",
       del: "Delete Chat",
+    },
+    Roles: {
+      System: "System Prompt",
+      Assistant: "Assistant",
+      User: "User",
     },
     InputActions: {
       Stop: "Stop",
@@ -358,11 +362,11 @@ const en = {
     Sysmessage: "You are an assistant that",
   },
   Template: {
-    Name: "Template",
+    Name: "Prompts",
     Page: {
-      Title: "Prompt Template",
-      SubTitle: (count: number) => `${count} prompt templates`,
-      Search: "Search Templates",
+      Title: "Prompt Library",
+      SubTitle: "Tailored Prompt Collection",
+      Search: "Search Prompts",
       Create: "Create",
     },
     Item: {
@@ -382,7 +386,7 @@ const en = {
     },
     Config: {
       Avatar: "Bot Avatar",
-      Name: "Bot Name",
+      Name: "Conversation Name",
       Sync: {
         Title: "Use Global Config",
         SubTitle: "Use global config in this chat",
