@@ -29,7 +29,6 @@ const es: PartialLocaleType = {
     Send: "Enviar",
     Config: {
       Reset: "Reset to Default",
-      SaveAs: "Save as Template",
     },
   },
   Export: {
@@ -165,8 +164,8 @@ const es: PartialLocaleType = {
       "La copia falló, por favor concede permiso para acceder al portapapeles",
   },
   Context: {
-    Toast: (x: any) => `With ${x} contextual prompts`,
-    Edit: "Contextual and Memory Prompts",
+    Toast: (x: any) => `With ${x} system prompts`,
+    Edit: "System and Memory Prompts",
     Add: "Add One",
   },
   Plugin: {

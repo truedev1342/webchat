@@ -41,8 +41,6 @@ const pt: PartialLocaleType = {
         light: "Tema Claro",
         dark: "Tema Escuro",
       },
-      Prompt: "Prompts",
-      Templates: "Modelos",
       Clear: "Limpar Contexto",
       Settings: "Configurações",
     },
@@ -60,7 +58,7 @@ const pt: PartialLocaleType = {
       Reset: "Redefinir para Padrão",
       SaveAs: "Salvar como Máscara",
     },
-    IsContext: "Prompt Contextual",
+    IsContext: "prompt do sistema",
   },
   Export: {
     Title: "Exportar Mensagens",

@@ -28,6 +28,7 @@ const en = {
       Retry: "Retry",
       Delete: "Delete",
       Edit: "Edit",
+      EditPrompts: "Edit Prompts",
     },
     Commands: {
       new: "Start a new chat",
@@ -50,8 +51,7 @@ const en = {
         light: "Light Theme",
         dark: "Dark Theme",
       },
-      Prompt: "Prompts",
-      Templates: "Templates",
+      QuickPrompt: "Quick Prompts",
       Clear: "Clear Context",
       Settings: "Settings",
       UploadImage: "Upload Images",
@@ -68,10 +68,10 @@ const en = {
     Send: "Send",
     Config: {
       Reset: "Reset to Default",
-      SaveAs: "Save as Template",
+      SaveAs: "Save Prompts",
       Confirm: "Confirm",
     },
-    IsContext: "Contextual Prompt",
+    IsContext: "System Prompt",
   },
   Export: {
     Title: "Export Messages",
@@ -349,8 +349,8 @@ const en = {
     Failed: "Download failed.",
   },
   Context: {
-    Toast: (x: any) => `With ${x} contextual prompts`,
-    Edit: "Current Chat Settings",
+    Toast: (x: any) => `With ${x} system prompts`,
+    Edit: "Prompts Settings",
     Add: "Add a Prompt",
     Clear: "Context Cleared",
     Revert: "Revert",
