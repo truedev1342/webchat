@@ -29,6 +29,7 @@ import { getClientConfig } from "../config/client";
 import { WebLLMApi, WebLLMContext } from "../client/webllm";
 import Locale from "../locales";
 import { useChatStore } from "../store";
+import { ServiceWorkerMLCEngine } from "@neet-nestor/web-llm";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -118,30 +119,10 @@ const useHasHydrated = () => {
   return hasHydrated;
 };
 
-const useServiceWorkerReady = () => {
-  const [serviceWorkerReady, setServiceWorkerReady] = useState<boolean>(false);
-
-  useEffect(() => {
-    navigator.serviceWorker.ready.then(() => {
-      setServiceWorkerReady(true);
-    });
-  }, []);
-
-  return serviceWorkerReady;
-};
-
-const loadAsyncGoogleFont = () => {
+const loadAsyncFonts = () => {
   const linkEl = document.createElement("link");
-  const proxyFontUrl = "/google-fonts";
-  const remoteFontUrl = "https://fonts.googleapis.com";
-  const googleFontUrl =
-    getClientConfig()?.buildMode === "export" ? remoteFontUrl : proxyFontUrl;
   linkEl.rel = "stylesheet";
-  linkEl.href =
-    googleFontUrl +
-    "/css2?family=" +
-    encodeURIComponent("Noto Sans:wght@300;400;700;900") +
-    "&display=swap";
+  linkEl.href = "/fonts/font.css";
   document.head.appendChild(linkEl);
 };
 
@@ -153,7 +134,7 @@ function Screen() {
   const shouldTightBorder = config.tightBorder && !isMobileScreen;
 
   useEffect(() => {
-    loadAsyncGoogleFont();
+    loadAsyncFonts();
   }, []);
 
   return (
@@ -186,15 +167,31 @@ const useWebLLM = () => {
   const [isSWAlive, setSWAlive] = useState(true);
 
   useEffect(() => {
-    setWebLLM(new WebLLMApi());
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then(() => {
+        setWebLLM(new WebLLMApi());
+      });
+    } else {
+      setWebLLM(new WebLLMApi());
+    }
+
+    // If service worker registration timeout
+    setTimeout(() => {
+      setWebLLM(new WebLLMApi());
+    }, 5_000);
   }, []);
 
-  setInterval(() => {
-    if (webllm) {
-      // 10s per heartbeat, dead after 1 min of inactivity
-      setSWAlive(!!webllm.engine && webllm.engine.missedHeatbeat < 6);
-    }
-  });
+  if (webllm?.webllm.type === "serviceWorker") {
+    setInterval(() => {
+      if (webllm) {
+        // 10s per heartbeat, dead after 1 min of inactivity
+        setSWAlive(
+          !!webllm.webllm.engine &&
+            (webllm.webllm.engine as ServiceWorkerMLCEngine).missedHeatbeat < 6,
+        );
+      }
+    }, 10_000);
+  }
 
   return { webllm, isWebllmAlive: isSWAlive };
 };
@@ -244,7 +241,6 @@ const useStopStreamingMessages = () => {
 
 export function Home() {
   const hasHydrated = useHasHydrated();
-  const isServiceWorkerReady = useServiceWorkerReady();
   const { webllm, isWebllmAlive } = useWebLLM();
 
   useSwitchTheme();
@@ -252,7 +248,7 @@ export function Home() {
   useLoadUrlParam();
   useStopStreamingMessages();
 
-  if (!hasHydrated || !isServiceWorkerReady) {
+  if (!hasHydrated || !webllm) {
     return <Loading />;
   }
 

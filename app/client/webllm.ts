@@ -8,42 +8,73 @@ import {
   ServiceWorkerMLCEngine,
   ChatCompletionChunk,
   ChatCompletion,
+  WebWorkerMLCEngine,
 } from "@neet-nestor/web-llm";
 
 import { ChatOptions, LLMApi, LLMConfig, RequestMessage } from "./api";
-import { sendGAEvent } from "@next/third-parties/google";
 
 const KEEP_ALIVE_INTERVAL = 5_000;
+
+type ServiceWorkerWebLLMHandler = {
+  type: "serviceWorker";
+  engine: ServiceWorkerMLCEngine;
+};
+
+type WebWorkerWebLLMHandler = {
+  type: "webWorker";
+  engine: WebWorkerMLCEngine;
+};
+
+type WebLLMHandler = ServiceWorkerWebLLMHandler | WebWorkerWebLLMHandler;
 
 export class WebLLMApi implements LLMApi {
   private llmConfig?: LLMConfig;
   private initialized = false;
-  engine: ServiceWorkerMLCEngine;
+  webllm: WebLLMHandler;
 
   constructor() {
-    if (!("serviceWorker" in navigator)) {
-      throw Error("Service worker API is not available");
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      console.log("Service Worker API is available and in use.");
+      this.webllm = {
+        type: "serviceWorker",
+        engine: new ServiceWorkerMLCEngine(
+          navigator.serviceWorker.controller,
+          KEEP_ALIVE_INTERVAL,
+        ),
+      };
+    } else {
+      console.log(
+        "Service Worker API is unavailable. Falling back to use web worker.",
+      );
+      this.webllm = {
+        type: "webWorker",
+        engine: new WebWorkerMLCEngine(
+          new Worker(new URL("../worker/web-worker.ts", import.meta.url), {
+            type: "module",
+          }),
+        ),
+      };
     }
-    if (!navigator.serviceWorker.controller) {
-      throw Error("There is no active service worker");
-    }
-    this.engine = new ServiceWorkerMLCEngine(
-      navigator.serviceWorker.controller,
-      KEEP_ALIVE_INTERVAL,
-    );
   }
 
   async initModel(onUpdate?: (message: string, chunk: string) => void) {
     if (!this.llmConfig) {
       throw Error("llmConfig is undefined");
     }
-    this.engine.setInitProgressCallback((report: InitProgressReport) => {
+    this.webllm.engine.setInitProgressCallback((report: InitProgressReport) => {
       onUpdate?.(report.text, report.text);
     });
-    await this.engine.init(this.llmConfig.model, this.llmConfig, {
-      ...prebuiltAppConfig,
-      useIndexedDBCache: this.llmConfig.cache === "index_db",
-    });
+    if (this.webllm.type === "serviceWorker") {
+      await this.webllm.engine.init(this.llmConfig.model, this.llmConfig, {
+        ...prebuiltAppConfig,
+        useIndexedDBCache: this.llmConfig.cache === "index_db",
+      });
+    } else {
+      await this.webllm.engine.reload(this.llmConfig.model, this.llmConfig, {
+        ...prebuiltAppConfig,
+        useIndexedDBCache: this.llmConfig.cache === "index_db",
+      });
+    }
     this.initialized = true;
   }
 
@@ -66,11 +97,6 @@ export class WebLLMApi implements LLMApi {
       } catch (err) {
         console.error("Error while initializing the model", err);
         options?.onError?.(err as Error);
-        sendGAEvent({
-          event: "exception",
-          step: "MLCEngineInitModel",
-          error: (err as Error).message || (err as Error).toString(),
-        });
         return;
       }
     }
@@ -83,16 +109,20 @@ export class WebLLMApi implements LLMApi {
         options.onUpdate,
       );
     } catch (err: any) {
-      if (
-        !err?.toString()?.includes("Please call `Engine.reload(model)` first")
-      ) {
+      let errorMessage = err.message || err.toString() || "";
+      if (!errorMessage.includes("Please call `Engine.reload(model)` first")) {
         console.error("Error in chatCompletion", err);
-        options.onError?.(err as Error);
-        sendGAEvent({
-          event: "exception",
-          step: "chatCompletion",
-          error: (err as Error).message || (err as Error).toString(),
-        });
+        if (
+          errorMessage.includes("WebGPU") &&
+          errorMessage.includes("compatibility chart")
+        ) {
+          // Add WebGPU compatibility chart link
+          errorMessage = errorMessage.replace(
+            "compatibility chart",
+            "[compatibility chart](https://caniuse.com/webgpu)",
+          );
+        }
+        options.onError?.(errorMessage);
         return;
       }
       // Service worker has been stopped. Restart it
@@ -101,11 +131,6 @@ export class WebLLMApi implements LLMApi {
       } catch (err) {
         console.error("Error while initializing the model", err);
         options?.onError?.(err as Error);
-        sendGAEvent({
-          event: "exception",
-          step: "MLCEngineInitModel",
-          error: (err as Error).message || (err as Error).toString(),
-        });
         return;
       }
       try {
@@ -117,11 +142,6 @@ export class WebLLMApi implements LLMApi {
       } catch (err: any) {
         console.error("Error in chatCompletion", err);
         options.onError?.(err as Error);
-        sendGAEvent({
-          event: "exception",
-          step: "chatCompletion",
-          error: (err as Error).message || (err as Error).toString(),
-        });
         return;
       }
     }
@@ -134,7 +154,7 @@ export class WebLLMApi implements LLMApi {
   }
 
   async abort() {
-    await this.engine?.interruptGenerate();
+    await this.webllm.engine?.interruptGenerate();
   }
 
   async usage() {
@@ -183,7 +203,7 @@ export class WebLLMApi implements LLMApi {
   ) {
     let reply: string | null = "";
 
-    const completion = await this.engine!.chatCompletion({
+    const completion = await this.webllm.engine.chatCompletion({
       stream: stream,
       messages: messages as ChatCompletionMessageParam[],
     });

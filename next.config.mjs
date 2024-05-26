@@ -72,24 +72,9 @@ if (mode !== "export") {
       },
     ];
   };
-
-  nextConfig.rewrites = async () => {
-    const ret = [
-      // adjust for previous version directly using "/api/proxy/" as proxy base route
-      {
-        source: "/google-fonts/:path*",
-        destination: "https://fonts.googleapis.com/:path*",
-      },
-    ];
-    return {
-      beforeFiles: ret,
-    };
-  };
 }
 
 export default withSerwistInit({
-  // Note: This is only an example. If you use Pages Router,
-  // use something else that works, such as "service-worker/index.ts".
-  swSrc: "app/service-worker.ts",
+  swSrc: "app/worker/service-worker.ts",
   swDest: "public/sw.js",
 })(nextConfig);
