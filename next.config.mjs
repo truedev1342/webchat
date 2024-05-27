@@ -1,4 +1,3 @@
-import webpack from "webpack";
 import withSerwistInit from "@serwist/next";
 
 const mode = process.env.BUILD_MODE ?? "export";
@@ -29,12 +28,6 @@ const nextConfig = {
       use: ["@svgr/webpack"],
     });
 
-    if (disableChunk) {
-      config.plugins.push(
-        new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
-      );
-    }
-
     config.resolve.fallback = {
       child_process: false,
     };
@@ -57,9 +50,6 @@ const nextConfig = {
   },
   experimental: {
     forceSwcTransforms: true,
-  },
-  env: {
-    NEXT_PUBLIC_LOG_LEVEL: "TRACE",
   },
 };
 
