@@ -4,6 +4,7 @@ require("../polyfill");
 
 import styles from "./home.module.scss";
 
+import log from "loglevel";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import {
@@ -163,6 +164,7 @@ const useWebLLM = () => {
   const [webllm, setWebLLM] = useState<WebLLMApi | undefined>(undefined);
   const [isWebllmActive, setWebllmAlive] = useState(false);
 
+  // Initialize WebLLM engine
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready.then(() => {
@@ -172,9 +174,7 @@ const useWebLLM = () => {
         const heartbeatCallback = (event: MessageEvent) => {
           const msg = event.data;
           if (msg.kind === "heartbeat") {
-            console.log(
-              "Confirmed messages from Service Worker. Starting app...",
-            );
+            log.info("Confirmed messages from Service Worker. Starting app...");
             setWebllmAlive(true);
             navigator.serviceWorker.removeEventListener(
               "message",
@@ -213,7 +213,6 @@ const useWebLLM = () => {
       }
     }, 10_000);
   }
-
   return { webllm, isWebllmActive };
 };
 
@@ -245,7 +244,7 @@ const useLoadUrlParam = () => {
       }
     });
     if (Object.keys(modelConfig).length > 0) {
-      console.log("Load model config from URL params", modelConfig);
+      log.info("Loaded model config from URL params", modelConfig);
       config.updateModelConfig(modelConfig);
     }
   }, []);
@@ -260,6 +259,18 @@ const useStopStreamingMessages = () => {
   }, []);
 };
 
+const useLogLevel = (webllm?: WebLLMApi) => {
+  const config = useAppConfig();
+
+  // Update log level once app config loads
+  useEffect(() => {
+    log.setLevel(config.logLevel);
+    if (webllm?.webllm?.engine) {
+      webllm.webllm.engine.setLogLevel(config.logLevel);
+    }
+  }, [config.logLevel, webllm?.webllm?.engine]);
+};
+
 export function Home() {
   const hasHydrated = useHasHydrated();
   const { webllm, isWebllmActive } = useWebLLM();
@@ -268,6 +279,7 @@ export function Home() {
   useHtmlLang();
   useLoadUrlParam();
   useStopStreamingMessages();
+  useLogLevel(webllm);
 
   if (!hasHydrated || !webllm || !isWebllmActive) {
     return <Loading />;
