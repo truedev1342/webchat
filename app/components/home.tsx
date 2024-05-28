@@ -2,33 +2,30 @@
 
 require("../polyfill");
 
-import { useState, useEffect } from "react";
-
 import styles from "./home.module.scss";
 
-import MlcIcon from "../icons/mlc.svg";
-import LoadingIcon from "../icons/three-dots.svg";
-
-import { getCSSVar, useMobileScreen } from "../utils";
-
 import dynamic from "next/dynamic";
-import { Path, SlotID } from "../constant";
-import { ErrorBoundary } from "./error";
-
-import { getISOLang, getLang } from "../locales";
-
+import { useState, useEffect } from "react";
 import {
   HashRouter as Router,
   Routes,
   Route,
   useLocation,
 } from "react-router-dom";
+import { ServiceWorkerMLCEngine } from "@neet-nestor/web-llm";
+
+import MlcIcon from "../icons/mlc.svg";
+import LoadingIcon from "../icons/three-dots.svg";
+
+import Locale from "../locales";
+import { getCSSVar, useMobileScreen } from "../utils";
+import { Path, SlotID } from "../constant";
+import { ErrorBoundary } from "./error";
+import { getISOLang, getLang } from "../locales";
 import { SideBar } from "./sidebar";
 import { useAppConfig } from "../store/config";
 import { WebLLMApi, WebLLMContext } from "../client/webllm";
-import Locale from "../locales";
 import { useChatStore } from "../store";
-import { ServiceWorkerMLCEngine } from "@neet-nestor/web-llm";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -164,36 +161,60 @@ function Screen() {
 const useWebLLM = () => {
   const config = useAppConfig();
   const [webllm, setWebLLM] = useState<WebLLMApi | undefined>(undefined);
-  const [isSWAlive, setSWAlive] = useState(true);
+  const [isWebllmActive, setWebllmAlive] = useState(false);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready.then(() => {
         setWebLLM(new WebLLMApi(config.logLevel));
+
+        // Verify service worker has been activated
+        const heartbeatCallback = (event: MessageEvent) => {
+          const msg = event.data;
+          if (msg.kind === "heartbeat") {
+            console.log(
+              "Confirmed messages from Service Worker. Starting app...",
+            );
+            setWebllmAlive(true);
+            navigator.serviceWorker.removeEventListener(
+              "message",
+              heartbeatCallback,
+            );
+          }
+        };
+        navigator.serviceWorker.addEventListener("message", heartbeatCallback);
+        navigator.serviceWorker.controller?.postMessage({
+          kind: "keepAlive",
+          uuid: crypto.randomUUID(),
+        });
       });
     } else {
       setWebLLM(new WebLLMApi(config.logLevel));
+      setWebllmAlive(true);
     }
 
     // If service worker registration timeout
     setTimeout(() => {
-      setWebLLM(new WebLLMApi(config.logLevel));
+      if (!navigator.serviceWorker?.controller && !isWebllmActive && !webllm) {
+        setWebLLM(new WebLLMApi(config.logLevel));
+        setWebllmAlive(true);
+      }
     }, 5_000);
   }, []);
 
   if (webllm?.webllm.type === "serviceWorker") {
     setInterval(() => {
       if (webllm) {
-        // 10s per heartbeat, dead after 1 min of inactivity
-        setSWAlive(
+        // 10s per heartbeat, dead after 30 seconds of inactivity
+        setWebllmAlive(
           !!webllm.webllm.engine &&
-            (webllm.webllm.engine as ServiceWorkerMLCEngine).missedHeatbeat < 6,
+            (webllm.webllm.engine as ServiceWorkerMLCEngine).missedHeatbeat < 3,
         );
       }
     }, 10_000);
   }
 
-  return { webllm, isWebllmAlive: isSWAlive };
+  return { webllm, isWebllmActive };
 };
 
 const useLoadUrlParam = () => {
@@ -241,18 +262,18 @@ const useStopStreamingMessages = () => {
 
 export function Home() {
   const hasHydrated = useHasHydrated();
-  const { webllm, isWebllmAlive } = useWebLLM();
+  const { webllm, isWebllmActive } = useWebLLM();
 
   useSwitchTheme();
   useHtmlLang();
   useLoadUrlParam();
   useStopStreamingMessages();
 
-  if (!hasHydrated || !webllm) {
+  if (!hasHydrated || !webllm || !isWebllmActive) {
     return <Loading />;
   }
 
-  if (!isWebllmAlive) {
+  if (!isWebllmActive) {
     return <ErrorScreen message={Locale.ServiceWorker.Error} />;
   }
 
