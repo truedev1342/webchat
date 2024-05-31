@@ -2089,10 +2089,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@neet-nestor/web-llm@^0.2.51":
-  version "0.2.51"
-  resolved "https://registry.yarnpkg.com/@neet-nestor/web-llm/-/web-llm-0.2.51.tgz#9744afd7a5d53ebb30040e90f25e6f19b718ad90"
-  integrity sha512-oYiA2RlQADv1pfirWVq3zrgAnpDvIFzzPdJo9ZagkJP55lOWugT8ms+bFFqEnqbBpjD4qDGYG4g0PMe0JIyMcg==
+"@neet-nestor/web-llm@^0.2.52":
+  version "0.2.52"
+  resolved "https://registry.yarnpkg.com/@neet-nestor/web-llm/-/web-llm-0.2.52.tgz#09ae0e38aebc57fb66512e5dbc07792e9f7eaa1e"
+  integrity sha512-BKOfJH+w1iLQpX2OGSZ/SiCGj4cb70M1lUwYhDpx3VSaPROqam0qMh4ZDFq70xv2R6U6W+ejXuHqPg92+aXKXQ==
   dependencies:
     loglevel "^1.9.1"
 
