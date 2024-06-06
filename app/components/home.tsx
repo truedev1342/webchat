@@ -179,7 +179,7 @@ const useWebLLM = () => {
 
         const sendEventInterval = setInterval(() => {
           navigator.serviceWorker.controller?.postMessage(request);
-        }, 500);
+        }, 200);
 
         const webGPUCheckCallback = (event: MessageEvent) => {
           const message = event.data;
@@ -221,14 +221,14 @@ const useWebLLM = () => {
 
     // If service worker registration timeout
     setTimeout(() => {
-      if (!navigator.serviceWorker?.controller && !isWebllmActive && !webllm) {
+      if (!isWebllmActive && !webllm) {
         log.info(
           "Service Worker activation is timed out. Falling back to use web worker.",
         );
         setWebLLM(new WebLLMApi("webWorker", config.logLevel));
         setWebllmAlive(true);
       }
-    }, 5_000);
+    }, 3_000);
   }, []);
 
   if (webllm?.webllm.type === "serviceWorker") {
