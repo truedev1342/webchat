@@ -12,18 +12,23 @@ import {
   StoreKey,
 } from "../constant";
 import { RequestMessage, MultimodalContent } from "../client/api";
-import { prettyObject } from "../utils/format";
 import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
 import { WebLLMApi } from "../client/webllm";
+import {
+  ChatCompletionFinishReason,
+  CompletionUsage,
+} from "@neet-nestor/web-llm";
 
 export type ChatMessage = RequestMessage & {
   date: string;
   streaming?: boolean;
   isError?: boolean;
   id: string;
+  stopReason?: ChatCompletionFinishReason;
   model?: ModelType;
+  usage?: CompletionUsage;
 };
 
 export function createMessage(override: Partial<ChatMessage>): ChatMessage {
@@ -32,6 +37,7 @@ export function createMessage(override: Partial<ChatMessage>): ChatMessage {
     date: new Date().toLocaleString(),
     role: "user",
     content: "",
+    stopReason: "stop",
     ...override,
   };
 }
@@ -275,12 +281,7 @@ export const useChatStore = createPersistStore(
         get().summarizeSession(webllm);
       },
 
-      onUserInput(
-        content: string,
-        webllm: WebLLMApi,
-        attachImages?: string[],
-        onFinish?: () => void,
-      ) {
+      onUserInput(content: string, webllm: WebLLMApi, attachImages?: string[]) {
         const modelConfig = useAppConfig.getState().modelConfig;
 
         const userContent = fillTemplateWith(content, modelConfig);
@@ -353,8 +354,10 @@ export const useChatStore = createPersistStore(
               session.messages = session.messages.concat();
             });
           },
-          onFinish(message) {
+          onFinish(message, stopReason, usage) {
             botMessage.streaming = false;
+            botMessage.usage = usage;
+            botMessage.stopReason = stopReason;
             if (message) {
               botMessage.content = message;
               get().onNewMessage(botMessage, webllm);
@@ -362,7 +365,6 @@ export const useChatStore = createPersistStore(
             get().updateCurrentSession((session) => {
               session.isGenerating = false;
             });
-            onFinish?.();
           },
           onError(error) {
             const errorMessage =
@@ -672,5 +674,18 @@ export const useChatStore = createPersistStore(
   },
   {
     name: StoreKey.Chat,
+    version: 0.1,
+    migrate(persistedState, version): any {
+      if (version < 0.1) {
+        const store = persistedState as typeof DEFAULT_CHAT_STATE;
+        store.sessions.forEach((s) => {
+          s.messages.forEach((m) => {
+            m.stopReason = "stop";
+          });
+        });
+        return store;
+      }
+      return persistedState;
+    },
   },
 );
