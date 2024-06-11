@@ -30,7 +30,6 @@ export interface LLMConfig {
   stream?: boolean;
   presence_penalty?: number;
   frequency_penalty?: number;
-  repetition_penalty?: number;
 }
 
 export interface ChatOptions {
@@ -59,7 +58,6 @@ export interface ModelRecord {
   size?: string;
   quantization?: string;
   context_length?: string;
-  is_default?: boolean;
   family?: string;
   vram_required_MB?: number;
   buffer_size_required_bytes?: number;
@@ -70,7 +68,6 @@ export interface ModelRecord {
     top_p?: number;
     presence_penalty?: number;
     frequency_penalty?: number;
-    repetition_penalty?: number;
   };
 }
 

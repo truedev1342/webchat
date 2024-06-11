@@ -47,7 +47,6 @@ export const DEFAULT_CONFIG = {
 
   cacheType: "cache" as CacheType,
   logLevel: "INFO" as LogLevel,
-  customModels: "",
   models: DEFAULT_MODELS as any as ModelRecord[],
 
   modelConfig: {
@@ -64,7 +63,6 @@ export const DEFAULT_CONFIG = {
     max_tokens: 4000,
     presence_penalty: 0,
     frequency_penalty: 0,
-    repetition_penalty: 0,
 
     // Use recommended config to overwrite above parameters
     ...DEFAULT_MODELS[0].recommended_config,
@@ -166,9 +164,9 @@ export const useAppConfig = createPersistStore(
   }),
   {
     name: StoreKey.Config,
-    version: 0.4,
+    version: 0.41,
     migrate: (persistedState, version) => {
-      if (version < 0.4) {
+      if (version < 0.41) {
         return {
           ...DEFAULT_CONFIG,
           ...(persistedState as any),
@@ -187,7 +185,6 @@ export const useAppConfig = createPersistStore(
             max_tokens: 4000,
             presence_penalty: 0,
             frequency_penalty: 0,
-            repetition_penalty: 0,
 
             // Use recommended config to overwrite above parameters
             ...DEFAULT_MODELS[0].recommended_config,
