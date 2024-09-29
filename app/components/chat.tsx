@@ -72,6 +72,7 @@ import {
   showConfirm,
   showPrompt,
   showToast,
+  Tooltip,
 } from "./ui-lib";
 import { useNavigate } from "react-router-dom";
 import {
@@ -514,7 +515,7 @@ export function ChatActions(props: {
       )}
       <ChatAction
         onClick={props.showPromptSetting}
-        text={Locale.Chat.Actions.EditPrompts}
+        text={Locale.Chat.Actions.EditConversation}
         icon={<EditIcon />}
       />
       <ChatAction
@@ -549,7 +550,11 @@ export function ChatActions(props: {
             title: m.name,
             value: m.name,
             family: m.family,
-            icon: isVisionModel(m.name) ? <EyeIcon /> : undefined,
+            icon: isVisionModel(m.name) ? (
+              <Tooltip content={<div>Vision Model</div>} direction="bottom">
+                <EyeIcon />
+              </Tooltip>
+            ) : undefined,
           }))}
           onClose={() => setShowModelSelector(false)}
           onSelection={(s) => {
@@ -1143,7 +1148,7 @@ function _Chat() {
       >
         <div className={styles["chat-action-context"]}>
           <ChatAction
-            text={Locale.Chat.Actions.EditPrompts}
+            text={Locale.Chat.Actions.EditConversation}
             icon={<EditIcon />}
             onClick={() => setShowEditPromptModal(true)}
             fullWidth
