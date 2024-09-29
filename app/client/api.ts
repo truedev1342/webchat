@@ -1,4 +1,7 @@
-import { ChatCompletionFinishReason, CompletionUsage } from "@mlc-ai/web-llm";
+import {
+  ChatCompletionFinishReason,
+  CompletionUsage,
+} from "@neet-nestor/web-llm";
 import { CacheType, Model } from "../store";
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
@@ -12,6 +15,10 @@ export interface MultimodalContent {
   image_url?: {
     url: string;
   };
+  dimension?: {
+    width: number;
+    height: number;
+  };
 }
 
 export interface RequestMessage {
@@ -23,6 +30,7 @@ export interface LLMConfig {
   model: string;
   cache: CacheType;
   temperature?: number;
+  context_window_size?: number;
   top_p?: number;
   stream?: boolean;
   presence_penalty?: number;
@@ -56,6 +64,7 @@ export interface ModelRecord {
   family?: string;
   recommended_config?: {
     temperature?: number;
+    context_window_size?: number;
     top_p?: number;
     presence_penalty?: number;
     frequency_penalty?: number;

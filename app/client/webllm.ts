@@ -12,10 +12,10 @@ import {
   WebWorkerMLCEngine,
   CompletionUsage,
   ChatCompletionFinishReason,
-} from "@mlc-ai/web-llm";
+} from "@neet-nestor/web-llm";
 
 import { ChatOptions, LLMApi, LLMConfig, RequestMessage } from "./api";
-import { LogLevel } from "@mlc-ai/web-llm";
+import { LogLevel } from "@neet-nestor/web-llm";
 import { fixMessage } from "../utils";
 import { DEFAULT_MODELS } from "../constant";
 
@@ -155,6 +155,7 @@ export class WebLLMApi implements LLMApi {
     // Compare optional fields
     const optionalFields: (keyof LLMConfig)[] = [
       "temperature",
+      "context_window_size",
       "top_p",
       "stream",
       "presence_penalty",
